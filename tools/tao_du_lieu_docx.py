@@ -864,14 +864,7 @@ def main_xuat():
         key_a[q['code']] = q['answer'] if q['type'] != 'short' else {'v': q['answer'], 'tol': tol_of(q['answer'])}
         guide = [x for x in q['guide'] if not re.match(r'^(?:<[^>]+>)*Hướng dẫn giải \(theo nguồn\)\s*:?(?:</[^>]+>)*$', x.strip())]
         key_e[q['code']] = '\n'.join(guide) if guide else ''
-        nt = [q['src']] if q['src'] else []
-        an = notag(q['ans_text']).strip()
-        if q['type'] == 'mc' and len(an) > 12:
-            nt.append('Ghi chú đáp án: ' + an)
-        if q['star']:
-            nt.append('Mức độ do người tổng hợp tự xếp (*), cần rà lại.')
-        if nt:
-            key_n[q['code']] = ' | '.join(nt)
+        # Không hiện "Ghi chú cho giáo viên" (nguồn, ghi chú đáp án, mức độ tự xếp) trong phòng – theo yêu cầu GV 14/11/2026.
     sessions, total = [], 0
     for g in sorted(groups):
         n = sum(1 for x in cfg_q if x['group'] == g)
