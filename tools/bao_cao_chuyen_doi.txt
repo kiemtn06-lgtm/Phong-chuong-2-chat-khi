@@ -1,0 +1,24 @@
+Đối chiếu đề giữa 2 file Word: 160/161 câu đơn của bộ ôn theo buổi trùng khớp với ngân hàng tổng
+Đối chiếu đáp án: 160 câu có đáp án rõ ở cả hai file, 0 câu khác nhau (1 câu bộ ôn không ghi đáp án dạng đọc được)
+Đưa vào phòng: 265 câu (mc 174, tf 36, short 55) trong 11 nhóm
+  nhóm  1 |  28 câu | Buổi 1 · Bài 8 · Mô hình động học phân tử chất khí
+  nhóm  2 |  27 câu | Buổi 2 · Bài 9 · Định luật Boyle
+  nhóm  3 |  28 câu | Buổi 3 · Bài 10 · Định luật Charles
+  nhóm  4 |  28 câu | Buổi 4 · Bài 11 · Phương trình trạng thái của khí lí tưởng (gồm quá trình đẳng tích)
+  nhóm  5 |  27 câu | Buổi 5 · Bài 12 · Áp suất khí theo mô hình động học phân tử. Quan hệ giữa động năng phân tử và nhiệt độ
+  nhóm  6 |  28 câu | Buổi 6 · Ôn tập tổng hợp Chương 2
+  nhóm 18 |  23 câu | Ngân hàng · Bài 8 · Mô hình động học phân tử chất khí
+  nhóm 19 |  24 câu | Ngân hàng · Bài 9 · Định luật Boyle
+  nhóm 20 |  17 câu | Ngân hàng · Bài 10 · Định luật Charles
+  nhóm 21 |  26 câu | Ngân hàng · Bài 11 · Phương trình trạng thái của khí lí tưởng (gồm quá trình đẳng tích)
+  nhóm 22 |   9 câu | Ngân hàng · Bài 12 · Áp suất khí theo mô hình động học phân tử. Quan hệ giữa động năng phân tử và nhiệt độ
+Câu KHÔNG đưa vào phòng vì nguồn không có đáp án (2):
+  - B9-TH-I-19 | Đáp án: nguồn không có đáp án
+  - B12-VD-I-03 | Đáp án: nguồn không có đáp án
+Ảnh dùng trong đề: 45 tệp
+Câu có bảng số liệu: 2 | câu chùm: 6
+Cảnh báo cần xem (3):
+  - Thiếu đáp án trắc nghiệm: B9-TH-I-19
+  - Thiếu đáp án trắc nghiệm: B12-VD-I-03
+  - Khác nội dung đề giữa 2 file: B11-TH-I-13
+Đã ghi data/cfg.json và data/key.json

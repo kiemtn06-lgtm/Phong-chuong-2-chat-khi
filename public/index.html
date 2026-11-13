@@ -371,7 +371,7 @@ function figSvg(f){
   if(f.img||f.html){
     var oo='';
     if(f.img)oo+='<div class="qfigs">'+(Array.isArray(f.img)?f.img:[f.img]).map(function(n,i){var w=f.w&&f.w[i]?' style="width:'+(+f.w[i])+'px"':'';return '<img class="qfig" data-act="zoom" data-src="/img/'+esc(n)+'" title="Bấm để phóng to"'+w+' src="/img/'+esc(n)+'" alt="'+esc(f.alt||'Hình minh họa')+'">';}).join('')+'</div>';
-    if(f.html)oo+='<div class="rawfig">'+f.html+'</div>';
+    if(f.html)oo+='<div class="rawfig">'+f.html.split('$').map(function(p,k){return k%2?texK(p):p;}).join('')+'</div>';
     return oo;
   }
   if(f.scene)return sceneSvg(f);

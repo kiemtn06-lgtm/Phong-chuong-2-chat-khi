@@ -2,14 +2,14 @@
 
 Cùng động cơ và cách dùng với phòng khối 10, 11 và phòng Vật lí nhiệt: học sinh vào bằng link, nhập họ tên là làm được, không cần tài khoản. Giáo viên vào `/teacher` bằng mật khẩu để mở câu, đóng câu, xem % đúng và danh sách đúng/sai, tải kết quả `.csv`.
 
-**Hiện phòng đang trống**: chưa có câu hỏi nào, chờ giáo viên đưa bài lên. Phòng này là một dự án riêng, không liên quan và không ảnh hưởng tới các phòng khác đang chạy.
+**Nội dung hiện có**: 265 câu (174 trắc nghiệm, 36 đúng sai, 55 trả lời ngắn) chuyển nguyên văn từ 2 tệp Word nguồn (có bản sao trong `nguon-goc/`): Buổi 1–6 (167 câu, theo thứ tự bộ ôn theo buổi) và 5 nhóm "Ngân hàng · Bài 8–12" (các câu còn lại). Hai câu nguồn ghi "không có đáp án" (B9-TH-I-19, B12-VD-I-03) chưa được đưa vào; xem `tools/bao_cao_chuyen_doi.txt`. Tạo lại dữ liệu: `python tools/tao_du_lieu_docx.py` rồi `node tools/kiem_tra.js`. Phòng này là một dự án riêng, không ảnh hưởng các phòng khác.
 
 | Trang | Link |
 |---|---|
 | Phòng làm bài (học sinh) | `/` |
 | Giáo viên | `/teacher` |
 
-Khi chưa có câu hỏi, học sinh thấy "Chờ giáo viên mở câu 1…" và giáo viên thấy thông báo chưa có câu hỏi.
+Nhiều câu trong nguồn không có lời giải riêng (chỉ có đáp án); khi đó phần giải thích để trống.
 
 ## Đưa thêm bài lên
 1. Đưa nguồn (trang HTML luyện tập, file Word ngân hàng câu hỏi, hoặc dạng khác) vào thư mục `nguon-goc`.
