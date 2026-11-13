@@ -35,6 +35,7 @@ state.mode = state.mode === 'batch' ? 'batch' : 'single';
 state.auto = !!state.auto;
 state.pct = Math.max(50, Math.min(100, parseInt(state.pct, 10) || 90));
 state.autoSeq = parseInt(state.autoSeq, 10) || 0;
+state.view = state.view === 'bo' ? 'bo' : 'dang';   // cách chia tab: theo dạng câu hoặc theo bộ (nhóm)
 function sessIdx(id) {
   const i = DEFAULT_ORDER.indexOf(id);
   for (let k = 0; k < (CFG.sessions || []).length; k++) if (i < CFG.sessions[k].end) return k;
@@ -106,7 +107,7 @@ function autoCheck() {
   return did;
 }
 function settingsOut() {
-  return { cap: state.cap, locked: isLocked(), manualLock: state.locked, auto: state.auto, pct: state.pct, mode: state.mode, joined: joined(), classSize: classSize() };
+  return { cap: state.cap, locked: isLocked(), manualLock: state.locked, auto: state.auto, pct: state.pct, mode: state.mode, view: state.view, joined: joined(), classSize: classSize() };
 }
 let saveTimer = null;
 function save() {
@@ -254,6 +255,7 @@ const server = http.createServer(async (req, res) => {
           if (b.locked !== undefined) state.locked = !!b.locked;
           if (b.mode !== undefined) state.mode = b.mode === 'batch' ? 'batch' : 'single';
           if (b.auto !== undefined) state.auto = !!b.auto;
+          if (b.view !== undefined) state.view = b.view === 'bo' ? 'bo' : 'dang';
           if (b.pct !== undefined) state.pct = Math.max(50, Math.min(100, parseInt(b.pct, 10) || 90));
           autoCheck();
         }
@@ -264,7 +266,7 @@ const server = http.createServer(async (req, res) => {
           state.order = ids.concat(DEFAULT_ORDER.filter(id => !pick.has(id)));
           state.released = ids.length; state.closed = 0; state.mode = 'batch'; state.drawn = ids;
         }
-        else if (a === 'reset') { state = { released: 0, closed: 0, order: DEFAULT_ORDER.slice(), students: {}, cap: state.cap, locked: false, mode: state.mode, auto: state.auto, pct: state.pct, autoSeq: state.autoSeq }; }
+        else if (a === 'reset') { state = { released: 0, closed: 0, order: DEFAULT_ORDER.slice(), students: {}, cap: state.cap, locked: false, mode: state.mode, auto: state.auto, pct: state.pct, autoSeq: state.autoSeq, view: state.view }; }
         else return send(res, 400, { error: 'Lệnh không hợp lệ' });
         save();
         return send(res, 200, { released: state.released, closed: state.closed });

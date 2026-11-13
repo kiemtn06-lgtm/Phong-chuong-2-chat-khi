@@ -11,6 +11,10 @@ Cùng động cơ và cách dùng với phòng khối 10, 11 và phòng Vật l�
 
 Nhiều câu trong nguồn không có lời giải riêng (chỉ có đáp án); khi đó phần giải thích để trống.
 
+**Mở câu theo dạng hoặc theo bộ**: ở trang giáo viên, dòng "Mở câu theo" chọn *Dạng câu* (3 tab: Trắc nghiệm, Đúng sai, Trả lời ngắn) hoặc *Bộ đề* (11 bộ: Buổi 1–6 và Ngân hàng Bài 8–12, mỗi bộ đủ các dạng câu). Ở chế độ bộ, "Mở câu" mở câu kế tiếp của bộ đang chọn, "Mở hết bộ này" mở cả bộ. Học sinh thấy tab theo đúng chế độ giáo viên đang chọn.
+
+**Mô phỏng**: 39 câu có tình huống cụ thể (bơm bóng, nén pit-tông, nung nóng đẳng áp/đẳng tích, khí thoát qua van, bọt khí nổi lên, chuyển động Brown) có thêm khung mô phỏng chạy được, đặt ngay dưới hình gốc. Danh sách và nhãn ở `tools/mo_phong.json`; mô phỏng chỉ diễn lại quá trình đề đã cho, không theo tỉ lệ, không hiện đại lượng cần tìm. Các câu hỏi khái niệm mà mô phỏng sẽ để lộ đáp án thì không gắn.
+
 ## Đưa thêm bài lên
 1. Đưa nguồn (trang HTML luyện tập, file Word ngân hàng câu hỏi, hoặc dạng khác) vào thư mục `nguon-goc`.
 2. Nhờ Claude chuyển sang `data/cfg.json`, `data/key.json` và `public/img`. **Nội dung giữ nguyên 100%**, chuyển bằng chương trình, không viết lại. Có thể thêm nguồn nhiều lần, mỗi lần một bài hoặc nhiều bài.

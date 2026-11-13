@@ -23,6 +23,11 @@ XML_SPACE = '{http://www.w3.org/XML/1998/namespace}space'
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 LOI = []   # các điểm cần xem lại
+try:
+    with open(os.path.join(ROOT, 'tools', 'mo_phong.json'), encoding='utf-8') as _f:
+        MO_PHONG = {k: v for k, v in json.load(_f).items() if not k.startswith('_')}
+except FileNotFoundError:
+    MO_PHONG = {}
 
 
 def loi(msg):
@@ -860,6 +865,8 @@ def main_xuat():
             fig['html'] = ''.join(q['tables'])
         if fig:
             o['fig'] = fig
+        if q['code'] in MO_PHONG:   # mô phỏng gắn theo câu (tools/mo_phong.json)
+            o['sim'] = MO_PHONG[q['code']]
         cfg_q.append(o)
         key_a[q['code']] = q['answer'] if q['type'] != 'short' else {'v': q['answer'], 'tol': tol_of(q['answer'])}
         guide = [x for x in q['guide'] if not re.match(r'^(?:<[^>]+>)*Hướng dẫn giải \(theo nguồn\)\s*:?(?:</[^>]+>)*$', x.strip())]

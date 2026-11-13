@@ -141,6 +141,40 @@ table.m td.c-ok,table.m td.c-bad,table.m td.c-sent,table.m td.c-none{min-width:4
 .seg2{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-bottom:12px}
 .seg2 button{font:inherit;font-weight:600;font-size:14px;padding:7px 16px;border:0;background:var(--surface);color:var(--ink);cursor:pointer}
 .seg2 button.on{background:var(--accent);color:var(--accent-ink)}
+.seg2.sets{display:flex;flex-wrap:wrap;gap:6px;border:0;overflow:visible}
+.seg2.sets button{border:1px solid var(--line);border-radius:8px;font-size:13px;padding:6px 12px}
+.seg2.sets button.on{border-color:var(--accent)}
+.setsh{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline;margin:4px 2px 8px}
+.setsh span{font-size:13px;color:var(--muted)}
+.simsvg .wl{fill:none;stroke:var(--ink);stroke-width:3;stroke-linejoin:round}
+.simsvg .gas{fill:var(--accent);fill-opacity:.08}
+.simsvg .mol{fill:var(--accent)}
+.simsvg .pis{fill:var(--muted)}
+.simsvg .rod{stroke:var(--muted);stroke-width:7;stroke-linecap:round}
+.simsvg .gface{fill:var(--surface);stroke:var(--ink);stroke-width:2}
+.simsvg .tick{stroke:var(--muted);stroke-width:1.5}
+.simsvg .ndl{stroke:var(--bad);stroke-width:2.5;stroke-linecap:round}
+.simsvg .tub{fill:var(--surface);stroke:var(--ink);stroke-width:1.5}
+.simsvg .thf{fill:var(--bad)}
+.simsvg .fl{fill:#f08c00}.simsvg .fl2{fill:#ffd43b}
+.simsvg .ice{fill:#74c0fc;fill-opacity:.8;stroke:#1c7ed6;stroke-width:1}
+.simsvg .sun{fill:#fcc419}.simsvg .sunr{stroke:#fcc419;stroke-width:2.5;stroke-linecap:round}
+.simsvg .frc{stroke:var(--bad);stroke-width:3;fill:none}.simsvg .frch{fill:var(--bad)}
+.simsvg .wgt{fill:var(--ink)}.simsvg .wgtt{fill:var(--surface);font:600 12px var(--font)}
+.simsvg .pin{stroke:var(--bad);stroke-width:4;stroke-linecap:round}
+.simsvg .dotc{fill:var(--accent)}
+.simsvg .hose{fill:none;stroke:var(--ink);stroke-width:5;stroke-linecap:round}
+.simsvg .ball{stroke:var(--ink);stroke-width:2.5}
+.simsvg .puff{fill:var(--accent)}
+.simsvg .wtr{fill:#4aa8d8;fill-opacity:.22}
+.simsvg .air{fill:var(--line);fill-opacity:.35}
+.simsvg .bub{fill:var(--surface);fill-opacity:.85;stroke:var(--accent);stroke-width:2}
+.simsvg .scope{fill:none;stroke:var(--ink);stroke-width:3}
+.simsvg .bp{fill:var(--warn)}.simsvg .bp2{fill:var(--muted);fill-opacity:.55}
+.simsvg .trl{fill:none;stroke:var(--warn);stroke-width:1.6}
+.simsvg .trd{fill:var(--warn)}
+.simsvg .cap{fill:var(--muted);font:italic 13px var(--font)}
+.simsvg .sm{font-size:13px}
 .ty{display:block;font-size:10px;font-weight:600;color:var(--muted);line-height:1.2}
 .ringbox{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
 .ring{width:96px;height:96px;flex:none}
@@ -256,15 +290,33 @@ function fmt(t){return String(t==null?'':t).split('$').map(function(p,k){return 
 function gname(q){var g=S.config&&S.config.groups;return g&&g[q.group]?g[q.group]:'';}
 function teacherNote(q){var n=S.key&&S.key.note&&S.key.note[q.id];return n?'<div class="tnote">Ghi chú cho giáo viên: '+fmt(n)+'</div>':'';}
 /* Hai tab (đúng sai / trả lời ngắn): cấu hình ở cfg.tabs = [{id,ten,types:[...]}]. Không có cfg.tabs thì hoạt động như cũ. */
-function TABS(){var t=S.config&&S.config.tabs;return t&&t.length?t:null;}
-function tabOf(q){var T=TABS();if(!T)return null;if(q.tab)return q.tab;for(var i=0;i<T.length;i++)if(T[i].types.indexOf(q.type)>=0)return T[i].id;return T[0].id;}
-function curTab(){var T=TABS();if(!T)return null;if(S.qtab&&T.some(function(x){return x.id===S.qtab;}))return S.qtab;return T[0].id;}
-function tabBar(qs,r){
-  var T=TABS();if(!T)return '';var st={},cur=curTab();
-  T.forEach(function(t){st[t.id]={total:0,open:0};});
-  qs.forEach(function(q,i){var x=st[tabOf(q)];x.total++;if(i<r)x.open++;});
-  return '<div class="seg2">'+T.map(function(t){return '<button class="'+(t.id===cur?'on':'')+'" data-act="qtab" data-t="'+esc(t.id)+'">'+esc(t.ten)+' · '+st[t.id].open+'/'+st[t.id].total+'</button>';}).join('')+'</div>';
+/* Chế độ "theo bộ" (settings.view==='bo'): mỗi nhóm câu (Buổi 1–6, Ngân hàng Bài 8–12) là một tab, gồm đủ mọi dạng câu. */
+function viewBo(){return !!(S.config&&S.config.settings&&S.config.settings.view==='bo');}
+var TBC={cfg:null,bo:null,t:null};
+function boTabs(){
+  var G=(S.config&&S.config.groups)||{},seen={},out=[];
+  Q().forEach(function(q){seen[String(q.group)]=1;});
+  Object.keys(seen).sort(function(a,b){return (+a)-(+b);}).forEach(function(g){var p=String(G[g]||('Bộ '+g)).split(' · ');
+    out.push({id:'g'+g,g:g,ten:p.slice(0,2).join(' · '),full:G[g]||('Bộ '+g),types:['mc','tf','short','view']});});
+  return out;
 }
+function TABS(){var t=S.config&&S.config.tabs;if(!(t&&t.length))return null;if(!viewBo())return t;
+  if(TBC.cfg!==S.config){TBC.cfg=S.config;TBC.t=boTabs();}return TBC.t;}
+function tabOf(q){var T=TABS();if(!T)return null;if(viewBo())return 'g'+q.group;if(q.tab)return q.tab;for(var i=0;i<T.length;i++)if(T[i].types.indexOf(q.type)>=0)return T[i].id;return T[0].id;}
+function curTab(){var T=TABS();if(!T)return null;if(S.qtab&&T.some(function(x){return x.id===S.qtab;}))return S.qtab;
+  if(viewBo()){var qs=Q(),r=rel();if(r&&qs[r-1])return 'g'+qs[r-1].group;}return T[0].id;}
+function curGroup(){var t=curTab();return t&&t.charAt(0)==='g'?t.slice(1):null;}
+function tabBar(qs,r){
+  var T=TABS();if(!T)return '';var st={},cur=curTab(),bo=viewBo();
+  T.forEach(function(t){st[t.id]={total:0,open:0};});
+  qs.forEach(function(q,i){var x=st[tabOf(q)];if(!x)return;x.total++;if(i<r)x.open++;});
+  var h='';
+  if(bo){var no=T.filter(function(t){return st[t.id].open>0;}).length;
+    h+='<div class="setsh"><b>Có '+T.length+' bộ</b><span>'+no+' bộ đã mở câu · bấm một bộ để xem</span></div>';}
+  return h+'<div class="seg2'+(bo?' sets':'')+'">'+T.map(function(t){return '<button class="'+(t.id===cur?'on':'')+'" data-act="qtab" data-t="'+esc(t.id)+'"'+(bo?' title="'+esc(t.full)+'"':'')+'>'+esc(t.ten)+' · '+st[t.id].open+'/'+st[t.id].total+'</button>';}).join('')+'</div>';
+}
+function viewSeg(){var n=boTabs().length,bo=viewBo();
+  return '<div class="row" style="margin-top:10px;align-items:center"><span class="kv">Mở câu theo:</span><div class="seg2" style="margin:0"><button class="'+(bo?'':'on')+'" data-act="view" data-v="dang">Dạng câu (3 tab)</button><button class="'+(bo?'on':'')+'" data-act="view" data-v="bo">Bộ đề ('+n+' bộ)</button></div></div>';}
 function ordTab(qs,i){var tb=tabOf(qs[i]),n=0;for(var j=0;j<=i;j++)if(tabOf(qs[j])===tb)n++;return n;}
 function shortG(g){var G=(S.config&&S.config.groups)||{},p=String(G[g]||'').split(' · ');return p[1]||('Nhóm '+g);}
 function resultTab(ids,qs,r,k,fq){
@@ -459,7 +511,7 @@ function studentView(){
   return h;
 }
 function qBody(q){
-  var s='<div class="grp">'+esc(gname(q))+'</div><p class="qt">'+fmt(q.text)+'</p>'+figSvg(q.fig);return s;
+  var s='<div class="grp">'+esc(gname(q))+'</div><p class="qt">'+fmt(q.text)+'</p>'+figSvg(q.fig)+simQ(q);return s;
 }
 function optsView(q,ans,kx){
   var rv=kx!=null;
@@ -586,7 +638,7 @@ function openPanel(qs,r,k){
   return '<div class="card"><h2>Mở câu theo nhóm và số lượng</h2><div class="seg2"><button class="'+(batch?'':'on')+'" data-act="mode" data-m="single">Từng câu</button><button class="'+(batch?'on':'')+'" data-act="mode" data-m="batch">Cả nhóm một lần</button></div><div class="ctl">'+
     '<label>Nhóm câu<select id="sel-group" data-in="selgroup"><option value="plan"'+(sel.group==='plan'?' selected':'')+'>Theo kế hoạch (câu kế tiếp)</option>'+
     gl.map(function(g){return '<option value="'+g+'"'+(sel.group===g?' selected':'')+'>'+esc(nm(g))+' · còn '+gstat[g].rem+'</option>';}).join('')+'</select></label>'+
-    '<label'+(TABS()?' style="display:none"':'')+'>Dạng câu<select id="sel-type" data-in="seltype">'+[['all','Mọi dạng'],['mc','Nhiều lựa chọn'],['tf','Đúng - Sai'],['short','Trả lời ngắn'],['view','Chỉ xem']].map(function(t){return '<option value="'+t[0]+'"'+(sel.type===t[0]?' selected':'')+'>'+t[1]+'</option>';}).join('')+'</select></label>'+
+    '<label'+(TABS()&&!viewBo()?' style="display:none"':'')+'>Dạng câu<select id="sel-type" data-in="seltype">'+[['all','Mọi dạng'],['mc','Nhiều lựa chọn'],['tf','Đúng - Sai'],['short','Trả lời ngắn'],['view','Chỉ xem']].map(function(t){return '<option value="'+t[0]+'"'+(sel.type===t[0]?' selected':'')+'>'+t[1]+'</option>';}).join('')+'</select></label>'+
     (batch?'':'<label>Số câu mở<input id="sel-n" type="number" min="1" max="200" inputmode="numeric" data-in="seln" value="'+n+'"></label>')+
     '<button class="btn primary" data-act="openSel"'+((cand&&!(batch&&r>k))?'':' disabled')+'>'+(batch?'Mở cả nhóm ':'Mở ')+(cand?n:0)+' câu</button></div>'+
     (batch?'<div class="kv" style="margin-top:10px">Mở một lần cho cả nhóm: học sinh làm tự do thứ tự, bấm “Đóng tất cả” một lần để hiện đáp án cả lô.'+(r>k?' <b>Hãy đóng lô đang mở trước khi mở lô mới.</b>':'')+'</div>':'<div class="row" style="margin-top:10px">'+[1,3,5,10].map(function(x){return '<button class="btn sm" data-act="nq" data-n="'+x+'">'+x+' câu</button>';}).join('')+'<button class="btn sm" data-act="nq" data-n="all">Tất cả còn lại ('+cand+')</button></div>')+
@@ -612,7 +664,7 @@ function teacherView(){
   var tabOpen=TABS()?qs.slice(0,r).filter(function(x){return tabOf(x)===curTab();}).length:r;
   h+='<div class="card"><div class="row">'+
     '<button class="btn primary" data-act="openNext"'+(tabRem?'':' disabled')+'>Mở câu '+(tabOpen+1)+'</button>'+
-    '<button class="btn" data-act="openSession"'+(tabRem?'':' disabled')+'>Mở hết '+(TABS()?'nhóm':'buổi')+'</button>'+
+    '<button class="btn" data-act="openSession"'+(tabRem?'':' disabled')+'>Mở hết '+(viewBo()?'bộ này':TABS()?'nhóm':'buổi')+'</button>'+
     (batch?'<button class="btn primary" data-act="closeAll"'+(k>=r?' disabled':'')+'>Đóng tất cả &amp; hiện đáp án</button>':'<button class="btn" data-act="closeNext"'+(k>=r?' disabled':'')+'>Đóng câu '+(TABS()&&qs[k]?ordTab(qs,k):k+1)+' &amp; hiện đáp án</button>'+(r-k>1?'<button class="btn primary" data-act="closeAll">Đóng cả '+(r-k)+' câu đang mở &amp; hiện đáp án</button>':''))+
     '<button class="btn" data-act="openAll"'+(r>=N?' disabled':'')+'>Mở tất cả</button>'+
     (S.confirmReset?
@@ -620,7 +672,7 @@ function teacherView(){
       '<button class="btn danger" data-act="reset">Làm lại từ đầu</button>')+
     '<button class="btn" data-act="sum"'+(k?'':' disabled')+'>'+(sumOn()?'Ẩn tổng kết':'Xem tổng kết')+'</button>'+
     '<button class="btn" data-act="ans">'+(S.showAns?'Ẩn đáp án':'Hiện đáp án (chỉ giáo viên)')+'</button>'+'<button class="btn" data-act="csv">Tải kết quả (.csv)</button>'+
-    '<button class="btn" data-act="optsToggle">'+(S.showOpts?'Ẩn cài đặt thêm':'Cài đặt thêm')+'</button></div><div class="meta"><span>'+esc(curSess())+' · đã mở <b class="num">'+r+'/'+N+'</b> câu · đã đóng <b class="num">'+k+'</b></span><span>Học sinh vào lớp: <b class="num">'+P+(cfgSet().cap>0?'/'+cfgSet().cap:'')+'</b>'+(cfgSet().locked?' · đã khóa':'')+'</span></div></div>';
+    '<button class="btn" data-act="optsToggle">'+(S.showOpts?'Ẩn cài đặt thêm':'Cài đặt thêm')+'</button></div><div class="meta"><span>'+esc(curSess())+' · đã mở <b class="num">'+r+'/'+N+'</b> câu · đã đóng <b class="num">'+k+'</b></span><span>Học sinh vào lớp: <b class="num">'+P+(cfgSet().cap>0?'/'+cfgSet().cap:'')+'</b>'+(cfgSet().locked?' · đã khóa':'')+'</span></div>'+(TABS()?viewSeg():'')+'</div>';
   h+=ringCard(S.config.progress);
   if(N)h+=tabBar(qs,r);
   if(N&&S.showOpts){h+=openPanel(qs,r,k);h+=roomPanel();h+=matrixPanel(r);}
@@ -643,7 +695,7 @@ function teacherView(){
   var cur=T?dfq():(k<r?k:r-1);
   h+='<div class="card"><div class="row" style="justify-content:space-between;margin-bottom:12px"><h2 style="margin:0">Câu '+(T?ordTab(qs,fq):fq+1)+' · '+(fq<k?'đã đóng':'đang mở')+(S.showOpts?' <span class="tag">'+TLAB[q.type]+'</span>':'')+'</h2>'+(fq!==cur?'<button class="btn" data-act="focus" data-i="'+cur+'">Về câu đang mở</button>':'')+'</div>'+
     '<div class="live"><div class="qview"><div class="grp">Học sinh đang thấy · '+esc(gname(q))+'</div>'+
-    '<p class="qt" style="margin:6px 0 10px">'+fmt(q.text)+'</p>'+figSvg(q.fig)+qOpts(q,kx,fq<k||!!S.showAns)+teacherNote(q)+
+    '<p class="qt" style="margin:6px 0 10px">'+fmt(q.text)+'</p>'+figSvg(q.fig)+simQ(q)+qOpts(q,kx,fq<k||!!S.showAns)+teacherNote(q)+
     (fq<k||S.showAns?'':'<div class="grp" style="margin-top:8px">Đáp án đang ẩn. Bấm “Hiện đáp án (chỉ giáo viên)” để xem. Học sinh chỉ thấy khi bấm “Đóng câu &amp; hiện đáp án”.</div>')+'</div>'+
     (isV(q)?'<div class="stat2"><div class="kv">Câu chỉ để xem, không chấm điểm.</div>'+((fq<k||S.showAns)&&S.key&&S.key.explain&&S.key.explain[q.id]?'<div class="kv" style="margin-top:8px"><b>Lời giải</b><br>'+fmt(S.key.explain[q.id])+'</div>':'')+'</div>':'<div class="stat2"><div class="big">'+(p==null||!kx?'—':p+'%')+'</div><div class="kv" style="margin-top:6px">làm đúng</div>'+
     '<div class="kv" style="margin:8px 0 12px"><b class="num">'+A+'/'+P+'</b> đã trả lời · <b class="num">'+cor+'</b> đúng · <b class="num">'+wrong+'</b> sai</div>'+
@@ -864,19 +916,173 @@ function simFrame(e,k,st){
     e.querySelector('.cd').textContent=Math.abs(v)<0.05?'Vật đang đổi chiều (v = 0)':(v>0?'Vật chuyển động theo chiều dương (→)':'Vật chuyển động theo chiều âm (←)');
   }
 }
+/* ---------- mô phỏng gắn theo câu: q.sim = {k:'xl'|'bom'|'bot'|'brown', ...} (dữ liệu: tools/mo_phong.json) ----------
+   Mô phỏng chỉ diễn lại quá trình mà đề đã mô tả, không theo tỉ lệ, không hiện đại lượng cần tìm. */
+var SQ={};
+function sidOf(id){return String(id).replace(/[^\w-]/g,'_');}
+function clamp(x,a,b){return x<a?a:x>b?b:x;}
+function ease(u){u=clamp(u,0,1);return u*u*(3-2*u);}
+function lerp(a,b,u){return a+(b-a)*u;}
+function gauss(){return (Math.random()+Math.random()+Math.random()+Math.random()-2)*1.73;}
+function sT(x,y,cls,t,anc){return '<text class="'+cls+'" x="'+x+'" y="'+y+'"'+(anc?' text-anchor="'+anc+'"':'')+'>'+esc(t||'')+'</text>';}
+function show(e,sel,on){var a=e.querySelectorAll(sel);for(var i=0;i<a.length;i++)a[i].style.display=on?'':'none';}
+function setTxt(e,sel,t){var x=e.querySelector(sel);if(x&&x.textContent!==t)x.textContent=t;}
+function simQ(q){
+  var p=q&&q.sim;if(!p||!SIMK[p.k])return '';
+  SQ[q.id]=p;var st=simState(q.id),D=SIMK[p.k];
+  var o='<div class="sim" data-sim="'+esc(q.id)+'" data-k="'+esc(p.k)+'"><svg class="fig simsvg" viewBox="0 '+(D.y0||0)+' 480 '+D.h+'" role="img" aria-label="'+esc(p.alt||'Mô phỏng quá trình trong đề')+'">'+D.draw(p,sidOf(q.id))+'</svg>';
+  o+='<div class="simbar"><button type="button" class="btn sb" data-sb="play">'+(st.play?'Tạm dừng':st.done?'Chạy lại':'Chạy mô phỏng')+'</button><button type="button" class="btn sb" data-sb="reset">Về ban đầu</button></div>';
+  return o+'<div class="kv simhint">'+esc((p.hint?p.hint+' ':'')+(D.note||''))+'</div></div>';
+}
+function simBtns(k,txt){var all=app.querySelectorAll('.sim[data-sim="'+k+'"] [data-sb="play"]');for(var i=0;i<all.length;i++)all[i].textContent=txt;}
+function gaugeSvg(x,y){var o='<circle class="gface" cx="'+x+'" cy="'+y+'" r="24"/>',a,r;
+  for(a=-120;a<=120;a+=30){r=a*Math.PI/180;o+='<line class="tick" x1="'+(x+17*Math.sin(r)).toFixed(1)+'" y1="'+(y-17*Math.cos(r)).toFixed(1)+'" x2="'+(x+22*Math.sin(r)).toFixed(1)+'" y2="'+(y-22*Math.cos(r)).toFixed(1)+'"/>';}
+  return o+'<line class="ndl" x1="'+x+'" y1="'+y+'" x2="'+x+'" y2="'+(y-18)+'" data-g="'+x+' '+y+'"/><circle class="frch" cx="'+x+'" cy="'+y+'" r="3"/>'+sT(x,y+14,'sm','p','middle');}
+function thermoSvg(x,y0,y1){return '<rect class="tub" x="'+(x-6)+'" y="'+y0+'" width="12" height="'+(y1-y0)+'" rx="6"/><circle class="thf" cx="'+x+'" cy="'+(y1+6)+'" r="10"/><rect class="thf thv" x="'+(x-3)+'" y="'+(y1-40)+'" width="6" height="42" data-y0="'+y0+'" data-y1="'+y1+'"/>'+sT(x,y0-8,'lb','T','middle');}
+function heatSvg(cx,y){
+  var o='<g class="hs-lua" style="display:none">';
+  [-40,0,40].forEach(function(dx){var x=cx+dx;o+='<path class="fl" d="M'+(x-11)+' '+(y+34)+' Q'+(x-12)+' '+(y+14)+' '+x+' '+y+' Q'+(x+12)+' '+(y+14)+' '+(x+11)+' '+(y+34)+' Z"/><path class="fl2" d="M'+(x-5)+' '+(y+34)+' Q'+(x-5)+' '+(y+22)+' '+x+' '+(y+14)+' Q'+(x+5)+' '+(y+22)+' '+(x+5)+' '+(y+34)+' Z"/>';});
+  o+='</g><g class="hs-da" style="display:none">';
+  [-54,-18,18,54].forEach(function(dx,i){o+='<rect class="ice" x="'+(cx+dx-12)+'" y="'+(y+4+(i%2)*6)+'" width="22" height="20" rx="3"/>';});
+  o+=sT(cx,y+44,'sm','làm lạnh','middle')+'</g><g class="hs-nang" style="display:none"><circle class="sun" cx="372" cy="40" r="13"/>';
+  for(var a=0;a<360;a+=45){var r=a*Math.PI/180;o+='<line class="sunr" x1="'+(372+18*Math.cos(r)).toFixed(1)+'" y1="'+(40+18*Math.sin(r)).toFixed(1)+'" x2="'+(372+25*Math.cos(r)).toFixed(1)+'" y2="'+(40+25*Math.sin(r)).toFixed(1)+'"/>';}
+  return o+'</g>';
+}
+/* trạng thái tương đối của khí qua từng giai đoạn: v (chiều dài/thể tích), T, n (lượng khí); p = nT/v */
+function xlStates(p){
+  var s=[{v:p.kieu==='dung'?0.8:0.6,T:1,n:1}];
+  (p.ph||[]).forEach(function(f){var a=s[s.length-1],b={v:a.v,T:a.T,n:a.n};
+    if(f.q==='T')b.v=f.to==='v0'?s[0].v:(f.d<0?a.v*0.68:Math.min(0.95,a.v*1.45));
+    else if(f.q==='p'){b.T=f.d<0?a.T*0.7:a.T*1.4;b.v=a.v*b.T/a.T;}
+    else if(f.q==='V')b.T=f.d<0?a.T*0.7:a.T*1.45;
+    else if(f.q==='pvt'){b.v=a.v*0.5;b.T=a.T*1.5;}
+    else if(f.q==='n')b.n=f.ra==='p0'?(s[0].n*s[0].T/s[0].v)*b.v/b.T:a.n*(1-f.ra);
+    s.push(b);});
+  return s;
+}
+var SIMK={
+  xl:{h:296,note:'Hình minh họa, không theo tỉ lệ.',draw:function(p){
+    var k=p.kieu||'pit',o='',i,mols='<g class="mols">';for(i=0;i<40;i++)mols+='<circle class="mol" r="3.2" cx="-20" cy="-20"/>';mols+='</g>';
+    if(k==='pit'){
+      o+=gaugeSvg(80,44)+'<line class="rod" x1="80" y1="68" x2="80" y2="90" style="stroke-width:4"/><rect class="gas gasr" x="42" y="92" width="200" height="106"/>'+mols+'<path class="wl" d="M330 90 H40 V200 H330"/>';
+      o+='<g class="pg"><rect class="pis" x="0" y="91" width="12" height="108" rx="2"/><line class="rod" x1="12" y1="145" x2="62" y2="145"/><line class="rod" x1="62" y1="122" x2="62" y2="168"/>'+
+        '<g class="hs-tay" style="display:none"><line class="frc" x1="106" y1="145" x2="78" y2="145"/><polygon class="frch" points="70,145 80,139 80,151"/>'+sT(92,134,'lb','F','middle')+'</g>'+
+        '<g class="hs-tay2" style="display:none"><line class="frc" x1="70" y1="145" x2="98" y2="145"/><polygon class="frch" points="106,145 96,139 96,151"/>'+sT(88,134,'lb','F','middle')+'</g>'+
+        '<line class="pin hs-pin" x1="6" y1="76" x2="6" y2="106" style="display:none"/></g>'+heatSvg(185,206);
+    }else if(k==='binh'){
+      o+=gaugeSvg(80,44)+'<line class="rod" x1="80" y1="68" x2="80" y2="90" style="stroke-width:4"/><rect class="gas" x="62" y="92" width="236" height="116" rx="14"/>'+mols+'<rect class="wl" x="60" y="90" width="240" height="120" rx="16"/>'+
+        '<rect class="tub" x="244" y="60" width="12" height="31"/><line class="rod" x1="234" y1="70" x2="266" y2="70" style="stroke:var(--ink);stroke-width:3"/><g class="hs-van" style="display:none">'+sT(272,66,'cap','xả khí','start')+'</g>'+heatSvg(180,216);
+    }else{
+      o+=gaugeSvg(96,200)+'<line class="rod" x1="120" y1="200" x2="170" y2="200" style="stroke-width:4"/><rect class="gas gasr" x="172" y="100" width="116" height="138"/>'+mols+'<path class="wl" d="M170 46 V240 H290 V46"/>'+
+        '<g class="pg"><rect class="pis" x="171" y="-10" width="118" height="10" rx="2"/><g class="hs-can" style="display:none"><rect class="wgt" x="203" y="-38" width="54" height="28" rx="3"/>'+sT(230,-19,'wgtt',p.can||'m','middle')+'</g></g>'+heatSvg(230,250);
+    }
+    return o+thermoSvg(440,70,222)+sT(240,264,'cap sc1','','middle')+sT(240,287,'ro sc2','','middle');
+  },frame:function(e,p,st,dt,key){
+    var S0=st.xs||(st.xs=xlStates(p)),ph=p.ph||[],tot=0.8+ph.length*4,t=Math.min(st.t,tot),k=p.kieu||'pit';
+    var i=Math.min(Math.max(0,ph.length-1),Math.max(0,Math.floor((t-0.8)/4))),lt=t-0.8-i*4,u=t<0.8?0:ease(lt/3.2),inPh=ph.length>0&&t>=0.8&&lt<3.2;
+    var a=S0[i],b=S0[i+1]||a,v=lerp(a.v,b.v,u),T=lerp(a.T,b.T,u),n=lerp(a.n,b.n,u),pr=n*T*S0[0].v/v,R,xp,yp,j;
+    if(k==='pit'){xp=42+v*280;R=[45,xp-3,95,195];e.querySelector('.pg').setAttribute('transform','translate('+xp.toFixed(1)+' 0)');e.querySelector('.gasr').setAttribute('width',(xp-42).toFixed(1));}
+    else if(k==='dung'){yp=238-v*170;R=[175,285,yp+3,235];e.querySelector('.pg').setAttribute('transform','translate(0 '+yp.toFixed(1)+')');var gr=e.querySelector('.gasr');gr.setAttribute('y',yp.toFixed(1));gr.setAttribute('height',(238-yp).toFixed(1));}
+    else R=[68,292,97,203];
+    var nd=e.querySelector('.ndl');nd.setAttribute('transform','rotate('+clamp(-50+75*Math.log(pr)/Math.LN2,-118,118).toFixed(1)+' '+nd.getAttribute('data-g')+')');
+    var th=e.querySelector('.thv'),ty0=+th.getAttribute('data-y0'),ty1=+th.getAttribute('data-y1'),hh=clamp(50+45*Math.log(T)/Math.LN2,14,ty1-ty0-8);th.setAttribute('y',(ty1+2-hh).toFixed(1));th.setAttribute('height',hh.toFixed(1));
+    var f=inPh?ph[i]:{},tac=f.tac||'';
+    show(e,'.hs-lua',tac==='lua');show(e,'.hs-da',tac==='da');show(e,'.hs-nang',tac==='nang');show(e,'.hs-van',tac==='van');
+    show(e,'.hs-tay',tac==='tay'&&b.v<=a.v);show(e,'.hs-tay2',tac==='tay'&&b.v>a.v);show(e,'.hs-pin',inPh&&f.q==='V');
+    if(tac==='lua'){var fl=e.querySelector('.hs-lua');if(fl)fl.style.opacity=(0.75+0.25*Math.random()).toFixed(2);}
+    if(k==='dung'){var ci=-1;ph.forEach(function(x,jj){if(x.tac==='can'&&ci<0)ci=jj;});var on=ci>=0&&t>=0.8+ci*4,cg=e.querySelector('.hs-can');
+      cg.style.display=on?'':'none';if(on){var ud=ease((t-0.8-ci*4)/0.6);cg.setAttribute('transform','translate(0 '+(-(1-ud)*60).toFixed(1)+')');}}
+    var N=40,m=st.m;
+    if(!m||st.reinit){m=st.m=[];for(j=0;j<N;j++){var an=Math.random()*6.283;m.push({x:lerp(R[0],R[1],Math.random()),y:lerp(R[2],R[3],Math.random()),dx:Math.cos(an),dy:Math.sin(an),out:0});}st.reinit=false;}
+    var inside=Math.round(N*n),sp=55*Math.sqrt(T),cs=e.querySelectorAll('.mol');
+    for(j=0;j<N;j++){var q=m[j];
+      if(j>=inside&&k==='binh'){
+        if(!q.out)q.out=1;
+        if(q.out===1){var ddx=250-q.x,ddy=94-q.y,dd=Math.sqrt(ddx*ddx+ddy*ddy);if(dd<5)q.out=2;else{q.x+=ddx/dd*150*dt;q.y+=ddy/dd*150*dt;}}
+        else q.y-=110*dt;
+      }else{
+        q.x+=q.dx*sp*dt;q.y+=q.dy*sp*dt;
+        if(q.x<R[0]){q.x=R[0];q.dx=Math.abs(q.dx);}if(q.x>R[1]){q.x=R[1];q.dx=-Math.abs(q.dx);}
+        if(q.y<R[2]){q.y=R[2];q.dy=Math.abs(q.dy);}if(q.y>R[3]){q.y=R[3];q.dy=-Math.abs(q.dy);}
+      }
+      cs[j].setAttribute('cx',q.x.toFixed(1));cs[j].setAttribute('cy',q.y.toFixed(1));cs[j].setAttribute('r',q.out===2&&q.y<62?0:3.2);
+    }
+    var nh=p.nhan||[],c1,c2;
+    if(!ph.length||t<0.8){c1='Trạng thái (1)';c2=nh[0];}
+    else if(inPh){c1=f.cap||'';c2=u<0.5?nh[i]:nh[i+1];}
+    else{c1='Trạng thái ('+(i+2)+')';c2=nh[i+1];}
+    setTxt(e,'.sc1',c1||'');setTxt(e,'.sc2',c2||'');
+    if(st.t>=tot&&st.play){st.t=tot;st.play=false;st.done=true;simBtns(key,'Chạy lại');}
+  }},
+  bom:{y0:74,h:196,note:'Hình minh họa, không theo tỉ lệ.',draw:function(p,u){
+    var o='<defs><pattern id="pd-'+u+'" width="7" height="7" patternUnits="userSpaceOnUse"><circle class="dotc" cx="3.5" cy="3.5" r="1.25"/></pattern></defs>';
+    o+='<line class="hose hs" x1="120" y1="150" x2="140" y2="150"/><circle class="bb" cx="66" cy="150" r="52" style="fill:var(--surface)"/><circle class="bf" cx="66" cy="150" r="52" fill="url(#pd-'+u+')"/><circle class="ball bo" cx="66" cy="150" r="52" fill="none"/>';
+    o+='<rect class="tub" x="138" y="145" width="14" height="10"/><rect class="gasp" x="152" y="114" width="200" height="72" fill="url(#pd-'+u+')"/><path class="wl" d="M370 112 H150 V188 H370"/>';
+    o+='<g class="pg"><rect class="pis" x="0" y="113" width="12" height="74" rx="2"/><line class="rod" x1="12" y1="150" x2="70" y2="150"/><line class="rod" x1="70" y1="124" x2="70" y2="176"/></g>';
+    for(var i=0;i<3;i++)o+='<circle class="puff" r="0" cx="140" cy="150"/>';
+    if(p.chay)o+='<line class="tick" x1="166" y1="98" x2="352" y2="98"/><polygon class="ah" points="162,98 171,94 171,102"/><polygon class="ah" points="356,98 347,94 347,102"/>'+sT(259,90,'lb',p.chay,'middle');
+    if(p.S)o+=sT(259,208,'lb',p.S,'middle');
+    return o+sT(240,236,'ro cnt','','middle')+sT(240,259,'ro sc2','','middle');
+  },frame:function(e,p,st,dt,key){
+    var n=p.n||0,P=n?clamp(14/n,0.55,1.6):1.4,tot=n?0.6+n*P+0.2:1e9,t=Math.min(st.t,tot),L=164,Rr=342;
+    var tt=Math.max(0,t-0.6),k=Math.floor(tt/P),u=(tt-k*P)/P,fin=n&&k>=n,xp,dn,pr;
+    if(fin){xp=Rr;dn=n;pr=n;}else{xp=u<0.5?Rr-(Rr-L)*ease(u*2):L+(Rr-L)*ease((u-0.5)*2);dn=k+(u>=0.5?1:0);pr=k+(u<0.5?ease(u*2):1);}
+    var f=n?clamp(pr/n,0,1):1-Math.exp(-pr/6),r,op;
+    if(p.bong==='no'){r=lerp(48,60,f);op=0.45+0.45*f;}else{r=54;op=p.rong?0.04+0.9*f:0.45+0.45*f;}
+    ['.bb','.bf','.bo'].forEach(function(s){e.querySelector(s).setAttribute('r',r.toFixed(1));});
+    e.querySelector('.bf').setAttribute('opacity',op.toFixed(2));e.querySelector('.hs').setAttribute('x1',(66+r-2).toFixed(1));
+    e.querySelector('.pg').setAttribute('transform','translate('+xp.toFixed(1)+' 0)');
+    var gp=e.querySelector('.gasp');gp.setAttribute('width',(xp-152).toFixed(1));gp.setAttribute('opacity',(!fin&&u<0.5&&t>0.6?0.55+0.4*ease(u*2):0.55).toFixed(2));
+    var pf=e.querySelectorAll('.puff'),push=!fin&&t>0.6&&u<0.5;
+    for(var j=0;j<pf.length;j++){var s=((u*2)+j/3)%1;pf[j].setAttribute('r',push?2.6:0);pf[j].setAttribute('cx',(140-s*(140-(66+r))).toFixed(1));}
+    var nh=p.nhan||[];
+    setTxt(e,'.cnt','Lần bơm: '+dn+(n?'/'+n:''));
+    setTxt(e,'.sc2',n?(fin?nh[1]:nh[0]):(t<0.6?nh[0]:(nh[1]||nh[0])));
+    if(st.t>=tot&&st.play){st.t=tot;st.play=false;st.done=true;simBtns(key,'Chạy lại');}
+  }},
+  bot:{h:292,note:'Hình minh họa, không theo tỉ lệ.',draw:function(p){
+    return '<rect class="air" x="20" y="18" width="320" height="42"/><rect class="wtr" x="20" y="60" width="320" height="200"/><line class="tick" x1="20" y1="60" x2="340" y2="60"/><line class="wl" x1="20" y1="261" x2="340" y2="261"/>'+
+      '<circle class="bub" cx="170" cy="244" r="12"/><line class="tick" x1="312" y1="66" x2="312" y2="254"/><polygon class="ah" points="312,61 308,70 316,70"/><polygon class="ah" points="312,259 308,250 316,250"/>'+sT(304,164,'lb',p.h||'h','end')+
+      sT(350,64,'ro sm',p.tren||'Mặt hồ','start')+sT(350,252,'ro sm',p.duoi||'Đáy hồ','start')+sT(180,286,'cap sc1','','middle');
+  },frame:function(e,p,st,dt,key){
+    var tot=6,t=Math.min(st.t,tot),u=ease((t-0.6)/5),y=lerp(244,74,u),R=p.ratio||1.6,pr=1+(R-1)*(y-74)/(244-74),r=12*Math.pow(R/pr,1/3);
+    var b=e.querySelector('.bub');b.setAttribute('cy',y.toFixed(1));b.setAttribute('cx',(170+(u>0&&u<1?3*Math.sin(t*7):0)).toFixed(1));b.setAttribute('r',r.toFixed(1));
+    setTxt(e,'.sc1',p.cap||'Bọt khí nổi lên, nhiệt độ nước không đổi');
+    if(st.t>=tot&&st.play){st.t=tot;st.play=false;st.done=true;simBtns(key,'Chạy lại');}
+  }},
+  brown:{h:270,note:'Mô phỏng định tính những gì quan sát được qua kính hiển vi.',draw:function(p,u){
+    var o='<defs><clipPath id="cp-'+u+'"><circle cx="135" cy="135" r="115"/></clipPath></defs><circle class="'+(p.moi==='nước'?'wtr':'air')+'" cx="135" cy="135" r="115"/><g clip-path="url(#cp-'+u+')"><path class="trl" d=""/><g class="trd"></g>';
+    for(var i=0;i<6;i++)o+='<circle class="'+(i?'bp2':'bp')+' bpp" r="'+(i?5:6.5)+'" cx="135" cy="135"/>';
+    return o+'</g><circle class="scope" cx="135" cy="135" r="115"/>'+sT(268,46,'ro','Quan sát qua kính hiển vi','start')+sT(268,72,'sm',(p.hat||'Hạt')+' trong '+(p.moi||'nước'),'start')+
+      '<circle class="trd" cx="274" cy="102" r="3.5"/>'+sT(284,107,'sm','vị trí của hạt màu cam','start')+sT(268,127,'sm','ghi lại sau mỗi khoảng thời','start')+sT(268,147,'sm','gian bằng nhau rồi nối lại.','start');
+  },frame:function(e,p,st,dt){
+    var b=st.b,j;
+    if(!b||st.reinit){b=st.b=[];for(j=0;j<6;j++){var an=Math.random()*6.283,rr=j?40+Math.random()*55:0;b.push({x:135+rr*Math.cos(an),y:135+rr*Math.sin(an),vx:0,vy:0});}st.tr=[[135,135]];st.nt=0.8;st.reinit=false;}
+    var cs=e.querySelectorAll('.bpp');
+    for(j=0;j<6;j++){var q=b[j];
+      if(dt>0){q.vx+=-4*q.vx*dt+120*Math.sqrt(dt)*gauss();q.vy+=-4*q.vy*dt+120*Math.sqrt(dt)*gauss();q.x+=q.vx*dt;q.y+=q.vy*dt;
+        var dx=q.x-135,dy=q.y-135,d=Math.sqrt(dx*dx+dy*dy);if(d>100){q.x=135+dx/d*100;q.y=135+dy/d*100;var vr=(q.vx*dx+q.vy*dy)/d;if(vr>0){q.vx-=2*vr*dx/d;q.vy-=2*vr*dy/d;}}}
+      cs[j].setAttribute('cx',q.x.toFixed(1));cs[j].setAttribute('cy',q.y.toFixed(1));}
+    if(dt>0&&st.t>=st.nt){st.tr.push([b[0].x,b[0].y]);st.nt+=0.8;if(st.tr.length>45)st.tr.shift();}
+    e.querySelector('.trl').setAttribute('d',st.tr.map(function(x,i){return (i?'L':'M')+x[0].toFixed(1)+' '+x[1].toFixed(1);}).join(' '));
+    var g=e.querySelector('g.trd'),hs=st.tr.map(function(x){return '<circle cx="'+x[0].toFixed(1)+'" cy="'+x[1].toFixed(1)+'" r="2.6"/>';}).join('');if(g._h!==hs){g.innerHTML=hs;g._h=hs;}
+  }}
+};
 var simLast=0;
 function simLoop(ts){
   var els=app.querySelectorAll('.sim'),dt=simLast?Math.min(0.1,(ts-simLast)/1000):0;simLast=ts;
   var done={};
-  for(var i=0;i<els.length;i++){var k=els[i].getAttribute('data-sim'),st=simState(k);
-    if(!done[k]){done[k]=1;if(st.play)st.t+=dt;}
-    simFrame(els[i],k,st);}
+  for(var i=0;i<els.length;i++){var e=els[i],k=e.getAttribute('data-sim'),ty=e.getAttribute('data-k'),st=simState(k),first=!done[k];
+    if(first){done[k]=1;if(st.play)st.t+=dt;}
+    if(ty){var D=SIMK[ty],p=SQ[k];if(!D||!p)continue;if(!st.play&&e._d&&!st.reinit)continue;
+      try{D.frame(e,p,st,(first&&st.play)?dt:0,k);}catch(x){}e._d=1;}
+    else simFrame(e,k,st);}
   requestAnimationFrame(simLoop);
 }
 requestAnimationFrame(simLoop);
 app.addEventListener('click',function(e){var b=e.target.closest('[data-sb]');if(!b)return;var box=b.closest('.sim'),k=box.getAttribute('data-sim'),st=simState(k);
-  if(b.dataset.sb==='play'){st.play=!st.play;var all=app.querySelectorAll('.sim[data-sim="'+k+'"] [data-sb="play"]');for(var i=0;i<all.length;i++)all[i].textContent=st.play?'Tạm dừng':'Chạy mô phỏng';}
-  else{st.t=0;st.play=false;var a2=app.querySelectorAll('.sim[data-sim="'+k+'"] [data-sb="play"]');for(var j=0;j<a2.length;j++)a2[j].textContent='Chạy mô phỏng';}
+  if(b.dataset.sb==='play'){if(st.done&&!st.play){st.t=0;st.done=false;st.reinit=true;}st.play=!st.play;simBtns(k,st.play?'Tạm dừng':'Chạy mô phỏng');}
+  else{st.t=0;st.play=false;st.done=false;st.reinit=true;simBtns(k,'Chạy mô phỏng');}
 });
 app.addEventListener('input',function(e){var t=e.target;if(!t.classList||!t.classList.contains('sr'))return;var k=t.closest('.sim').getAttribute('data-sim');simState(k).v=+t.value;});
 
@@ -926,6 +1132,9 @@ function act(d){
       S.mine.answers=S.mine.answers||{};S.mine.answers[d.q]=val;delete S.draft[d.q];S.err='';render();poll();
     }).catch(function(e){if(e.status===403){SID=null;try{localStorage.removeItem('sid');}catch(x){}S.mine=null;}fail(e);});
   }
+  else if(a==='openNext'&&viewBo()){if(curGroup())ctl('open',{group:curGroup(),type:'all',n:1});}
+  else if(a==='openSession'&&viewBo()){if(curGroup())ctl('open',{group:curGroup(),type:'all',n:'all'});}
+  else if(a==='view'){S.qtab=null;S.sel=null;S.focusQ=null;ctl('settings',{view:d.v==='bo'?'bo':'dang'});}
   else if(a==='openNext'&&TABS()){ctl('open',{group:'plan',type:effType(),n:1});}
   else if(a==='openSession'&&TABS()){var tb2=curTab(),nx=qs.slice(rel()).filter(function(x){return tabOf(x)===tb2;})[0];if(nx)ctl('open',{group:String(nx.group),type:'all',n:'all'});}
   else if(a==='openNext'||a==='openAll'||a==='openSession'||a==='closeNext'||a==='draw'){ctl(a);}
