@@ -1,0 +1,41 @@
+Nguồn: CHUONG2_KHI_LI_TUONG_tu_de_thi_tong_hop_DA_GOP_523_cau.docx
+Đưa vào phòng: 521 câu (mc 329, tf 81, short 111) trong 26 nhóm (buổi)
+  nhóm  1 | 20 câu (TN 16, ĐS 2, TLN 2) | Buổi 1 · Bài 8 · Mô hình động học phân tử chất khí
+  nhóm  2 | 19 câu (TN 15, ĐS 2, TLN 2) | Buổi 2 · Bài 8 · Mô hình động học phân tử chất khí
+  nhóm  3 | 18 câu (TN 15, ĐS 2, TLN 1) | Buổi 3 · Bài 8 · Mô hình động học phân tử chất khí
+  nhóm  4 | 18 câu (TN 15, ĐS 2, TLN 1) | Buổi 4 · Bài 8 · Mô hình động học phân tử chất khí
+  nhóm  5 | 25 câu (TN 17, ĐS 4, TLN 4) | Buổi 5 · Bài 9 · Định luật Boyle
+  nhóm  6 | 24 câu (TN 17, ĐS 4, TLN 3) | Buổi 6 · Bài 9 · Định luật Boyle
+  nhóm  7 | 24 câu (TN 17, ĐS 4, TLN 3) | Buổi 7 · Bài 9 · Định luật Boyle
+  nhóm  8 | 22 câu (TN 15, ĐS 4, TLN 3) | Buổi 8 · Bài 9 · Định luật Boyle
+  nhóm  9 | 23 câu (TN 16, ĐS 4, TLN 3) | Buổi 9 · Bài 9 · Định luật Boyle
+  nhóm 10 | 23 câu (TN 13, ĐS 4, TLN 6) | Buổi 10 · Bài 10 · Định luật Charles
+  nhóm 11 | 22 câu (TN 13, ĐS 4, TLN 5) | Buổi 11 · Bài 10 · Định luật Charles
+  nhóm 12 | 20 câu (TN 12, ĐS 4, TLN 4) | Buổi 12 · Bài 10 · Định luật Charles
+  nhóm 13 | 20 câu (TN 12, ĐS 4, TLN 4) | Buổi 13 · Bài 10 · Định luật Charles
+  nhóm 14 | 18 câu (TN  9, ĐS 3, TLN 6) | Buổi 14 · Bài 11 · Phương trình trạng thái của khí lí tưởng (gồm quá trình đẳng tích)
+  nhóm 15 | 18 câu (TN  9, ĐS 3, TLN 6) | Buổi 15 · Bài 11 · Phương trình trạng thái của khí lí tưởng (gồm quá trình đẳng tích)
+  nhóm 16 | 17 câu (TN  8, ĐS 3, TLN 6) | Buổi 16 · Bài 11 · Phương trình trạng thái của khí lí tưởng (gồm quá trình đẳng tích)
+  nhóm 17 | 17 câu (TN  8, ĐS 3, TLN 6) | Buổi 17 · Bài 11 · Phương trình trạng thái của khí lí tưởng (gồm quá trình đẳng tích)
+  nhóm 18 | 17 câu (TN  8, ĐS 3, TLN 6) | Buổi 18 · Bài 11 · Phương trình trạng thái của khí lí tưởng (gồm quá trình đẳng tích)
+  nhóm 19 | 17 câu (TN  8, ĐS 3, TLN 6) | Buổi 19 · Bài 11 · Phương trình trạng thái của khí lí tưởng (gồm quá trình đẳng tích)
+  nhóm 20 | 17 câu (TN  8, ĐS 3, TLN 6) | Buổi 20 · Bài 11 · Phương trình trạng thái của khí lí tưởng (gồm quá trình đẳng tích)
+  nhóm 21 | 16 câu (TN  8, ĐS 3, TLN 5) | Buổi 21 · Bài 11 · Phương trình trạng thái của khí lí tưởng (gồm quá trình đẳng tích)
+  nhóm 22 | 16 câu (TN  8, ĐS 2, TLN 6) | Buổi 22 · Bài 11 · Phương trình trạng thái của khí lí tưởng (gồm quá trình đẳng tích)
+  nhóm 23 | 24 câu (TN 16, ĐS 3, TLN 5) | Buổi 23 · Bài 12 · Áp suất khí theo mô hình động học phân tử. Quan hệ giữa động năng phân tử và nhiệt độ
+  nhóm 24 | 23 câu (TN 16, ĐS 3, TLN 4) | Buổi 24 · Bài 12 · Áp suất khí theo mô hình động học phân tử. Quan hệ giữa động năng phân tử và nhiệt độ
+  nhóm 25 | 22 câu (TN 15, ĐS 3, TLN 4) | Buổi 25 · Bài 12 · Áp suất khí theo mô hình động học phân tử. Quan hệ giữa động năng phân tử và nhiệt độ
+  nhóm 26 | 21 câu (TN 15, ĐS 2, TLN 4) | Buổi 26 · Bài 12 · Áp suất khí theo mô hình động học phân tử. Quan hệ giữa động năng phân tử và nhiệt độ
+Câu KHÔNG đưa vào phòng vì nguồn không có đáp án (2):
+  - B9-TH-I-34 | Đáp án: nguồn không có đáp án
+  - B12-VD-I-02 | Đáp án: nguồn không có đáp án
+Ảnh dùng trong đề: 94 tệp | câu có bảng số liệu: 5 | câu chùm: 58
+Mô phỏng gắn lại theo mã cũ: 39/39
+Cảnh báo cần xem (6):
+  - Ảnh định dạng image/x-emf chưa hỗ trợ (rId rId9)
+  - Đối tượng nhúng (object/pict) trong đoạn: ''
+  - Đối tượng nhúng (object/pict) trong đoạn: ''
+  - Đối tượng nhúng (object/pict) trong đoạn: ''
+  - Đối tượng nhúng (object/pict) trong đoạn: ''
+  - Đối tượng nhúng (object/pict) trong đoạn: ''
+Đã ghi data/cfg.json và data/key.json

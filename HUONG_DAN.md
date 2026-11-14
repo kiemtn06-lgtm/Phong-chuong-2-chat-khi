@@ -2,7 +2,7 @@
 
 Cùng động cơ và cách dùng với phòng khối 10, 11 và phòng Vật lí nhiệt: học sinh vào bằng link, nhập họ tên là làm được, không cần tài khoản. Giáo viên vào `/teacher` bằng mật khẩu để mở câu, đóng câu, xem % đúng và danh sách đúng/sai, tải kết quả `.csv`.
 
-**Nội dung hiện có**: 265 câu (174 trắc nghiệm, 36 đúng sai, 55 trả lời ngắn) chuyển nguyên văn từ 2 tệp Word nguồn (có bản sao trong `nguon-goc/`): Buổi 1–6 (167 câu, theo thứ tự bộ ôn theo buổi) và 5 nhóm "Ngân hàng · Bài 8–12" (các câu còn lại). Hai câu nguồn ghi "không có đáp án" (B9-TH-I-19, B12-VD-I-03) chưa được đưa vào; xem `tools/bao_cao_chuyen_doi.txt`. Tạo lại dữ liệu: `python tools/tao_du_lieu_docx.py` rồi `node tools/kiem_tra.js`. Phòng này là một dự án riêng, không ảnh hưởng các phòng khác.
+**Nội dung hiện có**: 521 câu (329 trắc nghiệm, 81 đúng sai, 111 trả lời ngắn) chuyển nguyên văn từ tệp Word `nguon-goc/CHUONG2_KHI_LI_TUONG_tu_de_thi_tong_hop_DA_GOP_523_cau.docx`, chia thành **26 buổi** đúng như file "CHUONG2_KHI_LI_TUONG_Bo_on_theo_buoi_DU_523_cau.docx": Bài 8 buổi 1–4, Bài 9 buổi 5–9, Bài 10 buổi 10–13, Bài 11 buổi 14–22, Bài 12 buổi 23–26. Mỗi buổi tối đa 18 câu trắc nghiệm, 4 câu đúng sai, 6 câu trả lời ngắn; câu chùm đi cùng nhau. Hai câu nguồn ghi "không có đáp án" (B9-TH-I-34, B12-VD-I-02) chưa được đưa vào; xem `tools/bao_cao_chuyen_doi_523.txt`. Tạo lại dữ liệu: `python -I -X utf8 tools/tao_du_lieu_523.py` rồi `node tools/kiem_tra.js`. (Bộ 265 câu trước đây tạo bằng `tools/tao_du_lieu_docx.py`, vẫn giữ để dùng lại khi cần.) Phòng này là một dự án riêng, không ảnh hưởng các phòng khác.
 
 | Trang | Link |
 |---|---|
@@ -11,7 +11,7 @@ Cùng động cơ và cách dùng với phòng khối 10, 11 và phòng Vật l�
 
 Nhiều câu trong nguồn không có lời giải riêng (chỉ có đáp án); khi đó phần giải thích để trống.
 
-**Mở câu theo dạng hoặc theo bộ**: ở trang giáo viên, dòng "Mở câu theo" chọn *Dạng câu* (3 tab: Trắc nghiệm, Đúng sai, Trả lời ngắn) hoặc *Bộ đề* (11 bộ: Buổi 1–6 và Ngân hàng Bài 8–12, mỗi bộ đủ các dạng câu). Ở chế độ bộ, "Mở câu" mở câu kế tiếp của bộ đang chọn, "Mở hết bộ này" mở cả bộ. Học sinh thấy tab theo đúng chế độ giáo viên đang chọn.
+**Mở câu theo dạng hoặc theo bộ**: ở trang giáo viên, dòng "Mở câu theo" chọn *Dạng câu* (3 tab: Trắc nghiệm, Đúng sai, Trả lời ngắn) hoặc *Bộ đề* (26 bộ = 26 buổi, mỗi bộ đủ các dạng câu). Ở chế độ bộ, "Mở câu" mở câu kế tiếp của bộ đang chọn, "Mở hết bộ này" mở cả bộ. Học sinh thấy tab theo đúng chế độ giáo viên đang chọn. Muốn kết hợp cả hai (ví dụ chỉ mở câu đúng sai của Buổi 5): vào "Cài đặt thêm" → "Mở câu theo nhóm và số lượng", chọn nhóm (buổi) và dạng câu.
 
 **Mô phỏng**: 39 câu có tình huống cụ thể (bơm bóng, nén pit-tông, nung nóng đẳng áp/đẳng tích, khí thoát qua van, bọt khí nổi lên, chuyển động Brown) có thêm khung mô phỏng chạy được, đặt ngay dưới hình gốc. Danh sách và nhãn ở `tools/mo_phong.json`; mô phỏng chỉ diễn lại quá trình đề đã cho, không theo tỉ lệ, không hiện đại lượng cần tìm. Các câu hỏi khái niệm mà mô phỏng sẽ để lộ đáp án thì không gắn.
 
