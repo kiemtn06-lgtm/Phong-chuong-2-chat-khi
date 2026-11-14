@@ -349,7 +349,27 @@ function printRow(){
   function b(src,n,lab){return '<button class="btn sm" data-act="print" data-src="'+src+'"'+(n?'':' disabled')+'>'+lab+' ('+n+')</button>';}
   return '<div class="row" style="margin-top:10px;align-items:center;gap:6px"><span class="kv">In giấy cho học sinh:</span>'+
     b('open',o,'Câu đang mở')+b('released',r,'Tất cả câu đã mở')+(g?b('group',nG,'Cả '+shortG(g)):'')+
-    '<label class="kv" style="display:flex;gap:4px;align-items:center;margin-left:6px"><input type="checkbox" data-in="printAns"'+(S.printAns?' checked':'')+'> kèm đáp án &amp; lời giải (bản giáo viên)</label></div>';}
+    '<label class="kv" style="display:flex;gap:4px;align-items:center;margin-left:6px"><input type="checkbox" data-in="printAns"'+(S.printAns?' checked':'')+'> kèm đáp án &amp; lời giải (bản giáo viên)</label></div>'+wordRow();}
+/* Xuất Word: máy chủ ghép nguyên văn đoạn Word gốc (công thức, hình, bảng) của từng câu; dùng chung ô "kèm đáp án" ở trên */
+function wordRow(){
+  var r=rel(),k=clo(),G=(S.config&&S.config.groups)||{},gs=Object.keys(G).sort(function(a,b){return (+a)-(+b);}),cnt={};
+  Q().forEach(function(q){cnt[q.group]=(cnt[q.group]||0)+1;});
+  if(!S.wordG||!G[S.wordG])S.wordG=(viewBo()&&curGroup())||gs[0];
+  function b(src,n,lab){return '<button class="btn sm" data-act="word" data-src="'+src+'"'+(n&&!S.wordBusy?'':' disabled')+'>'+lab+' ('+n+')</button>';}
+  return '<div class="row" style="margin-top:6px;align-items:center;gap:6px;flex-wrap:wrap"><span class="kv">Xuất Word (.docx):</span>'+
+    b('open',r-k,'Câu đang mở')+b('released',r,'Tất cả câu đã mở')+
+    '<select data-in="wordG" style="max-width:360px">'+gs.map(function(g){return '<option value="'+esc(g)+'"'+(String(g)===String(S.wordG)?' selected':'')+'>'+esc(G[g])+' ('+(cnt[g]||0)+' câu)</option>';}).join('')+'</select>'+
+    '<button class="btn sm primary" data-act="word" data-src="group"'+(S.wordBusy?' disabled':'')+'>'+(S.wordBusy?'Đang tạo file…':'Tải Word cả nhóm')+'</button></div>';}
+function wordDownload(src){
+  var q='src='+src+'&ans='+(S.printAns?1:0)+(src==='group'?'&g='+encodeURIComponent(S.wordG):'');
+  S.wordBusy=true;render();
+  fetch('/api/t/export.docx?'+q,{headers:{'x-teacher-pass':PASS||''}}).then(function(r){
+    if(!r.ok)return r.json().then(function(j){throw new Error(j.error||'Lỗi '+r.status);},function(){throw new Error('Lỗi '+r.status);});
+    var cd=r.headers.get('Content-Disposition')||'',m=/filename="([^"]+)"/.exec(cd);
+    return r.blob().then(function(b){var u=URL.createObjectURL(b),l=document.createElement('a');l.href=u;l.download=m?m[1]:'bai-tap.docx';
+      document.body.appendChild(l);l.click();l.remove();setTimeout(function(){URL.revokeObjectURL(u);},1500);});
+  }).catch(function(e){alert('Không xuất được Word: '+e.message);}).then(function(){S.wordBusy=false;render();});
+}
 function printPaper(src){
   var qs=Q(),idx=printIdx(src),L='ABCD',PH={mc:'PHẦN I. Câu trắc nghiệm nhiều phương án lựa chọn',tf:'PHẦN II. Câu trắc nghiệm đúng sai',short:'PHẦN III. Câu trắc nghiệm trả lời ngắn',view:'Tự luận'};
   if(!idx.length)return;
@@ -1237,6 +1257,7 @@ function act(d){
   else if(a==='lockToggle'){ctl('settings',{locked:!cfgSet().manualLock});}
   else if(a==='closeAll'){ctl('closeAll');}
   else if(a==='print'){printPaper(d.src);}
+  else if(a==='word'){if(!S.wordBusy)wordDownload(d.src);}
   else if(a==='selgroup'){S.sel.group=d.g;render();}
   else if(a==='nq'){S.sel.n=d.n==='all'?'all':(+d.n||1);render();}
   else if(a==='optsToggle'){S.showOpts=!S.showOpts;try{localStorage.setItem('showOpts',S.showOpts?'1':'0');}catch(x){}render();}
@@ -1275,6 +1296,7 @@ app.addEventListener('change',function(e){
   else if(d.in==='setpct'){S.dset=null;ctl('settings',{pct:parseInt(t.value,10)||90});}
   else if(d.in==='setauto'){ctl('settings',{auto:t.checked});}
   else if(d.in==='printAns'){S.printAns=t.checked;}
+  else if(d.in==='wordG'){S.wordG=t.value;}
 });
 app.addEventListener('keydown',function(e){
   if(e.key!=='Enter')return;

@@ -307,6 +307,27 @@ const server = http.createServer(async (req, res) => {
         save();
         return send(res, 200, { released: state.released, closed: state.closed });
       }
+      // Xuất Word (.docx) nguyên văn từ file nguồn: src = open (câu đang mở) | released (mọi câu đã mở) | group (cả một nhóm/buổi, g = số nhóm)
+      if (req.method === 'GET' && p === '/api/t/export.docx') {
+        const src = url.searchParams.get('src'), withAns = url.searchParams.get('ans') === '1', o = state.order;
+        let ids, title = '', groupName = null;
+        if (src === 'group') {
+          const g = String(parseInt(url.searchParams.get('g'), 10));
+          if (!CFG.groups[g]) return send(res, 400, { error: 'Nhóm không hợp lệ' });
+          ids = o.filter(id => String(BYID[id].group) === g);
+          title = CFG.groups[g];
+        } else if (src === 'open' || src === 'released') {
+          ids = o.slice(src === 'open' ? state.closed : 0, state.released);
+          if (state.view === 'de') title = 'Đề ôn trộn ngẫu nhiên' + (state.deSo ? ' số ' + state.deSo : '');
+          else if (new Set(ids.map(id => BYID[id].group)).size > 1) groupName = q => CFG.groups[q.group] || '';
+        } else return send(res, 400, { error: 'Nguồn không hợp lệ' });
+        if (!ids.length) return send(res, 409, { error: 'Không có câu nào để xuất' });
+        const buf = require('./wordx').build(__dirname, ids, BYID, { title: CFG.title, sub: title, ans: withAns, groupName });
+        const base = src === 'group' ? 'Chuong2-Buoi-' + parseInt(url.searchParams.get('g'), 10) : src === 'open' ? 'Chuong2-cau-dang-mo' : 'Chuong2-cau-da-mo';
+        const fn = base + (withAns ? '-dap-an' : '') + '.docx';
+        res.writeHead(200, { 'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'Content-Disposition': 'attachment; filename="' + fn + '"', 'Content-Length': buf.length });
+        return res.end(buf);
+      }
       if (req.method === 'GET' && p === '/api/t/export.csv') {
         const qs = Qs();
         const rows = [['Họ tên'].concat(qs.map((q, i) => 'Câu ' + (i + 1) + ' (' + q.id + ')')).concat(['Số câu đúng', 'Tỉ lệ đúng (%)', 'Điểm (thang 10)'])];
