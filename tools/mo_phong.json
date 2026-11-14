@@ -92,5 +92,12 @@
   "B11-VDC-III-02": {"k": "xl", "kieu": "pit", "ph": [
       {"q": "V", "d": 1, "tac": "lua", "cap": "Đẳng tích (giữ chốt): áp suất tăng gấp 2"},
       {"q": "p", "d": 1, "tac": "lua", "cap": "Bỏ chốt, dãn đẳng áp đến 15 lít"}],
-    "nhan": ["V₁ = 10 lít, t₁ = 27 °C, p₁ = 1 atm", "p₂ = 2p₁, V₂ = 10 lít", "V₃ = 15 lít, t₃ = ?"]}
+    "nhan": ["V₁ = 10 lít, t₁ = 27 °C, p₁ = 1 atm", "p₂ = 2p₁, V₂ = 10 lít", "V₃ = 15 lít, t₃ = ?"]},
+  "moi:B9-TH-I-01": {"k": "lo",
+    "nhan": ["Khí trong lọ: V₁, p₁", "Khí trong lọ: V₂ = ?, p₂ = ?"],
+    "hint": "Lọ thuốc úp ngược, đầu kim nằm trong thuốc. Kéo pít-tông: thuốc từ lọ đi vào xilanh, nhiệt độ không đổi."},
+  "moi:B9-TH-I-31": {"k": "xl", "kieu": "pit", "ph": [
+      {"q": "T", "d": 1, "tac": "tay", "cap": "Cơ hoành co, lồng ngực nở ra, nhiệt độ không đổi"}],
+    "nhan": ["Khí trong phổi: V₁, p₁ = p₀ (áp suất khí quyển)", "V₂ > V₁, p₂ = ? (so với p₀)"],
+    "hint": "Xi lanh tượng trưng cho lồng ngực chứa khí trong phổi, pít-tông tượng trưng cho cơ hoành. Hít vào: cơ hoành co, thể tích lồng ngực tăng; coi nhiệt độ không đổi."}
 }

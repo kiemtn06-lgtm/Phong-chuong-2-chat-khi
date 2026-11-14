@@ -154,6 +154,9 @@ def main():
         if q.get('old') and q['old'] in T.MO_PHONG:
             o['sim'] = T.MO_PHONG[q['old']]
             sim_used.append(q['old'])
+        elif 'moi:' + q['code'] in T.MO_PHONG:   # mô phỏng làm mới cho câu của bộ 523 câu (gắn theo mã mới)
+            o['sim'] = T.MO_PHONG['moi:' + q['code']]
+            sim_used.append('moi:' + q['code'])
         cfg_q.append(o)
         key_a[q['code']] = q['answer'] if q['type'] != 'short' else {'v': q['answer'], 'tol': T.tol_of(q['answer'])}
         guide = [x for x in q['guide'] if not re.match(r'^(?:<[^>]+>)*Hướng dẫn giải \(theo nguồn\)\s*:?(?:</[^>]+>)*$', x.strip())]

@@ -30,7 +30,7 @@ Câu KHÔNG đưa vào phòng vì nguồn không có đáp án (2):
   - B9-TH-I-34 | Đáp án: nguồn không có đáp án
   - B12-VD-I-02 | Đáp án: nguồn không có đáp án
 Ảnh dùng trong đề: 94 tệp | câu có bảng số liệu: 5 | câu chùm: 58
-Mô phỏng gắn lại theo mã cũ: 39/39
+Mô phỏng gắn lại theo mã cũ: 41/41
 Cảnh báo cần xem (6):
   - Ảnh định dạng image/x-emf chưa hỗ trợ (rId rId9)
   - Đối tượng nhúng (object/pict) trong đoạn: ''
