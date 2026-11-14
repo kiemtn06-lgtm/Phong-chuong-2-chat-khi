@@ -315,8 +315,27 @@ function tabBar(qs,r){
     h+='<div class="setsh"><b>Có '+T.length+' bộ</b><span>'+no+' bộ đã mở câu · bấm một bộ để xem</span></div>';}
   return h+'<div class="seg2'+(bo?' sets':'')+'">'+T.map(function(t){return '<button class="'+(t.id===cur?'on':'')+'" data-act="qtab" data-t="'+esc(t.id)+'"'+(bo?' title="'+esc(t.full)+'"':'')+'>'+esc(t.ten)+' · '+st[t.id].open+'/'+st[t.id].total+'</button>';}).join('')+'</div>';
 }
-function viewSeg(){var n=boTabs().length,bo=viewBo();
-  return '<div class="row" style="margin-top:10px;align-items:center"><span class="kv">Mở câu theo:</span><div class="seg2" style="margin:0"><button class="'+(bo?'':'on')+'" data-act="view" data-v="dang">Dạng câu (3 tab)</button><button class="'+(bo?'on':'')+'" data-act="view" data-v="bo">Bộ đề ('+n+' bộ)</button></div></div>';}
+function viewDe(){return !!(S.config&&S.config.settings&&S.config.settings.view==='de');}
+function viewSeg(){var n=boTabs().length,bo=viewBo(),de=viewDe(),mx=S.config&&S.config.matrix;
+  return '<div class="row" style="margin-top:10px;align-items:center"><span class="kv">Mở câu theo:</span><div class="seg2" style="margin:0">'+
+    '<button class="'+(bo?'on':'')+'" data-act="view" data-v="bo">Nhóm (buổi) · '+n+' nhóm</button>'+
+    (mx?'<button class="'+(de?'on':'')+'" data-act="view" data-v="de">Đề ôn trộn ngẫu nhiên · '+deSum(mx)+'</button>':'')+
+    '<button class="'+(bo||de?'':'on')+'" data-act="view" data-v="dang">Dạng câu · lộn xộn toàn chương</button></div></div>';}
+function deSum(mx){var nm={mc:'TN',tf:'ĐS',short:'TLN'};return mx.rules.map(function(x){return x.n+' '+(nm[x.type]||x.type);}).join(' – ');}
+/* Đề ôn trộn ngẫu nhiên: mỗi lần soạn bốc từ các câu CHƯA mở của toàn chương, đúng 18 TN – 4 ĐS – 6 TLN, mở cả đề một lần. */
+function dePanel(qs,r,k){
+  var mx=S.config.matrix,s=cfgSet(),rest={},nm={mc:'trắc nghiệm',tf:'đúng sai',short:'trả lời ngắn'};
+  qs.slice(r).forEach(function(x){rest[x.type]=(rest[x.type]||0)+1;});
+  var du=mx.rules.every(function(x){return (rest[x.type]||0)>=x.n;}),open=k<r;
+  return '<div class="card"><h2>Đề ôn trộn ngẫu nhiên · '+deSum(mx)+'</h2>'+
+    '<div class="kv">Mỗi đề bốc ngẫu nhiên từ các bài trong toàn chương, chỉ lấy câu chưa mở (đề sau không trùng đề trước), câu chùm luôn đi đủ cặp. Đề mở cả một lần; học sinh làm theo 3 tab Trắc nghiệm / Đúng sai / Trả lời ngắn. Làm xong bấm “Đóng tất cả &amp; hiện đáp án”.</div>'+
+    '<div class="kv" style="margin-top:6px">Đã soạn <b class="num">'+(s.deSo||0)+'</b> đề'+(s.deSo?' · đề gần nhất '+(s.deCau||0)+' câu':'')+'. Còn chưa mở: '+['mc','tf','short'].map(function(t){return '<b class="num">'+(rest[t]||0)+'</b> '+nm[t];}).join(' · ')+'.</div>'+
+    ((s.deThieu||[]).length?'<div class="note bad">Đề gần nhất thiếu câu: '+esc(s.deThieu.join(', '))+'.</div>':'')+
+    '<div class="row" style="margin-top:10px"><button class="btn primary" data-act="draw"'+(open?' disabled':'')+'>Soạn và mở đề ôn '+((s.deSo||0)+1)+'</button>'+
+    (open?'<button class="btn" data-act="closeAll">Đóng tất cả &amp; hiện đáp án</button>':'')+'</div>'+
+    (open?'<div class="kv" style="margin-top:8px">Đang có '+(r-k)+' câu mở. Đóng đề hiện tại trước khi soạn đề mới.</div>':'')+
+    (!du?'<div class="kv" style="margin-top:8px">Số câu chưa mở không còn đủ một đề đầy đủ; đề mới sẽ lấy hết phần còn lại. Bấm “Làm lại từ đầu” để dùng lại toàn bộ ngân hàng.</div>':'')+'</div>';
+}
 function ordTab(qs,i){var tb=tabOf(qs[i]),n=0;for(var j=0;j<=i;j++)if(tabOf(qs[j])===tb)n++;return n;}
 function shortG(g){var G=(S.config&&S.config.groups)||{},p=String(G[g]||'').split(' · ');return p[1]||('Nhóm '+g);}
 function resultTab(ids,qs,r,k,fq){
@@ -663,8 +682,11 @@ function teacherView(){
   var tabRem=TABS()?qs.slice(r).filter(function(x){return tabOf(x)===curTab();}).length:(N-r);
   var tabOpen=TABS()?qs.slice(0,r).filter(function(x){return tabOf(x)===curTab();}).length:r;
   h+='<div class="card"><div class="row">'+
-    '<button class="btn primary" data-act="openNext"'+(tabRem?'':' disabled')+'>Mở câu '+(tabOpen+1)+'</button>'+
-    '<button class="btn" data-act="openSession"'+(tabRem?'':' disabled')+'>Mở hết '+(viewBo()?'bộ này':TABS()?'nhóm':'buổi')+'</button>'+
+    (viewDe()?'':viewBo()||!TABS()?
+      '<button class="btn primary" data-act="openNext"'+(tabRem?'':' disabled')+'>Mở câu '+(tabOpen+1)+'</button>'+
+      '<button class="btn" data-act="openSession"'+(tabRem?'':' disabled')+'>Mở hết '+(viewBo()?'bộ này':'buổi')+'</button>':
+      '<button class="btn primary" data-act="openNext"'+(tabRem?'':' disabled')+'>Mở 1 câu ngẫu nhiên</button>'+
+      '<button class="btn" data-act="openSession" data-n="5"'+(tabRem?'':' disabled')+'>Mở 5 câu ngẫu nhiên</button>')+
     (batch?'<button class="btn primary" data-act="closeAll"'+(k>=r?' disabled':'')+'>Đóng tất cả &amp; hiện đáp án</button>':'<button class="btn" data-act="closeNext"'+(k>=r?' disabled':'')+'>Đóng câu '+(TABS()&&qs[k]?ordTab(qs,k):k+1)+' &amp; hiện đáp án</button>'+(r-k>1?'<button class="btn primary" data-act="closeAll">Đóng cả '+(r-k)+' câu đang mở &amp; hiện đáp án</button>':''))+
     '<button class="btn" data-act="openAll"'+(r>=N?' disabled':'')+'>Mở tất cả</button>'+
     (S.confirmReset?
@@ -672,10 +694,12 @@ function teacherView(){
       '<button class="btn danger" data-act="reset">Làm lại từ đầu</button>')+
     '<button class="btn" data-act="sum"'+(k?'':' disabled')+'>'+(sumOn()?'Ẩn tổng kết':'Xem tổng kết')+'</button>'+
     '<button class="btn" data-act="ans">'+(S.showAns?'Ẩn đáp án':'Hiện đáp án (chỉ giáo viên)')+'</button>'+'<button class="btn" data-act="csv">Tải kết quả (.csv)</button>'+
-    '<button class="btn" data-act="optsToggle">'+(S.showOpts?'Ẩn cài đặt thêm':'Cài đặt thêm')+'</button></div><div class="meta"><span>'+esc(curSess())+' · đã mở <b class="num">'+r+'/'+N+'</b> câu · đã đóng <b class="num">'+k+'</b></span><span>Học sinh vào lớp: <b class="num">'+P+(cfgSet().cap>0?'/'+cfgSet().cap:'')+'</b>'+(cfgSet().locked?' · đã khóa':'')+'</span></div>'+(TABS()?viewSeg():'')+'</div>';
+    '<button class="btn" data-act="optsToggle">'+(S.showOpts?'Ẩn cài đặt thêm':'Cài đặt thêm')+'</button></div><div class="meta"><span>'+esc(viewDe()?'Đề ôn trộn ngẫu nhiên'+(cfgSet().deSo?' · đã soạn '+cfgSet().deSo+' đề':''):curSess())+' · đã mở <b class="num">'+r+'/'+N+'</b> câu · đã đóng <b class="num">'+k+'</b></span><span>Học sinh vào lớp: <b class="num">'+P+(cfgSet().cap>0?'/'+cfgSet().cap:'')+'</b>'+(cfgSet().locked?' · đã khóa':'')+'</span></div>'+(TABS()?viewSeg():'')+'</div>';
   h+=ringCard(S.config.progress);
   if(N)h+=tabBar(qs,r);
-  if(N&&S.showOpts){h+=openPanel(qs,r,k);h+=roomPanel();h+=matrixPanel(r);}
+  if(N&&viewDe())h+=dePanel(qs,r,k);
+  if(N&&!viewDe()&&TABS()&&!viewBo())h+='<div class="kv" style="margin:6px 0 10px">Đang mở theo <b>dạng câu</b>: mỗi lần bấm, phòng rút ngẫu nhiên trong toàn chương các câu thuộc tab đang chọn (câu chùm mở cả cặp).</div>';
+  if(N&&S.showOpts){h+=openPanel(qs,r,k);h+=roomPanel();}
   var hasV=qs.some(isV),tt=hasV&&S.ttab==='essay';
   if(hasV)h+='<div class="seg2"><button class="'+(tt?'':'on')+'" data-act="ttab" data-t="main">Câu hỏi làm bài</button><button class="'+(tt?'on':'')+'" data-act="ttab" data-t="essay">Tự luận (chỉ xem)</button></div>';
   if(tt)return h+essayTeacher(qs,r,k);
@@ -1134,9 +1158,10 @@ function act(d){
   }
   else if(a==='openNext'&&viewBo()){if(curGroup())ctl('open',{group:curGroup(),type:'all',n:1});}
   else if(a==='openSession'&&viewBo()){if(curGroup())ctl('open',{group:curGroup(),type:'all',n:'all'});}
-  else if(a==='view'){S.qtab=null;S.sel=null;S.focusQ=null;ctl('settings',{view:d.v==='bo'?'bo':'dang'});}
-  else if(a==='openNext'&&TABS()){ctl('open',{group:'plan',type:effType(),n:1});}
-  else if(a==='openSession'&&TABS()){var tb2=curTab(),nx=qs.slice(rel()).filter(function(x){return tabOf(x)===tb2;})[0];if(nx)ctl('open',{group:String(nx.group),type:'all',n:'all'});}
+  else if(a==='view'){S.qtab=null;S.sel=null;S.focusQ=null;ctl('settings',{view:(d.v==='bo'||d.v==='de')?d.v:'dang'});}
+  /* theo dạng câu: rút ngẫu nhiên trong toàn chương các câu cùng dạng với tab đang chọn (câu chùm mở cả cặp) */
+  else if(a==='openNext'&&TABS()){ctl('open',{group:'plan',type:effType(),n:1,rand:true});}
+  else if(a==='openSession'&&TABS()){ctl('open',{group:'plan',type:effType(),n:+d.n||5,rand:true});}
   else if(a==='openNext'||a==='openAll'||a==='openSession'||a==='closeNext'||a==='draw'){ctl(a);}
   else if(a==='ans'){S.showAns=!S.showAns;render();}
   else if(a==='ttab'){S.ttab=d.t==='essay'?'essay':'main';render();}

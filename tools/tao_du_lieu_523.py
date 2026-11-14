@@ -250,6 +250,11 @@ def main():
                         q['tables'] = ctx_tables + tables
                     q['answer'] = T.short_answer(q)
                     emit(g, q, ctx, ctx_imgs)
+                # câu chùm: đánh dấu đi cặp để khi mở/bốc ngẫu nhiên luôn ra cùng nhau
+                ids = [o['id'] for o in cfg_q if o['id'] in [c.split(' ')[0] for c in u['codes']]]
+                if len(ids) == 2:
+                    by = {o['id']: o for o in cfg_q}
+                    by[ids[0]]['pair'], by[ids[1]]['pair'] = ids[1], ids[0]
         n = len(cfg_q) - n0
         sessions.append({'name': '%s (câu %d–%d)' % (groups[g], total + 1, total + n), 'end': total + n})
         total += n
@@ -257,7 +262,9 @@ def main():
     tabs = [{'id': 'mc', 'ten': 'Trắc nghiệm', 'types': ['mc']}, {'id': 'tf', 'ten': 'Đúng sai', 'types': ['tf']},
             {'id': 'short', 'ten': 'Trả lời ngắn', 'types': ['short']}]
     cfg = {'title': 'Luyện tập Vật lí 12 · Chương 2 · Chất khí', 'released': 0, 'closed': 0, 'tabs': tabs,
-           'groups': {str(g): n for g, n in sorted(groups.items())}, 'sessions': sessions, 'questions': cfg_q}
+           'groups': {str(g): n for g, n in sorted(groups.items())}, 'sessions': sessions, 'questions': cfg_q,
+           # đề ôn ngẫu nhiên toàn chương theo cấu trúc đề thi: 18 TN, 4 Đ/S, 6 TLN (bốc trong các câu chưa mở)
+           'matrix': {'name': 'Đề ôn ngẫu nhiên toàn chương', 'rules': [{'type': 'mc', 'n': 18}, {'type': 'tf', 'n': 4}, {'type': 'short', 'n': 6}]}}
     key = {'answers': key_a, 'explain': key_e, 'note': {}}
     P('Nguồn: ' + os.path.basename(src))
     P('Đưa vào phòng: %d câu (%s) trong %d nhóm (buổi)' % (len(cfg_q), ', '.join('%s %d' % (t, sum(1 for q in cfg_q if q['type'] == t)) for t in ('mc', 'tf', 'short')), len(groups)))

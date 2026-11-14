@@ -35,22 +35,38 @@ state.mode = state.mode === 'batch' ? 'batch' : 'single';
 state.auto = !!state.auto;
 state.pct = Math.max(50, Math.min(100, parseInt(state.pct, 10) || 90));
 state.autoSeq = parseInt(state.autoSeq, 10) || 0;
-state.view = state.view === 'bo' ? 'bo' : 'dang';   // cách chia tab: theo dạng câu hoặc theo bộ (nhóm)
+// cách mở câu: 'dang' = theo dạng câu (3 tab, rút ngẫu nhiên toàn chương), 'bo' = theo bộ (buổi), 'de' = đề ôn ngẫu nhiên theo ma trận
+const VIEWS = ['dang', 'bo', 'de'];
+state.view = VIEWS.includes(state.view) ? state.view : 'dang';
+state.deSo = parseInt(state.deSo, 10) || 0;   // số đề ôn ngẫu nhiên đã soạn
 function sessIdx(id) {
   const i = DEFAULT_ORDER.indexOf(id);
   for (let k = 0; k < (CFG.sessions || []).length; k++) if (i < CFG.sessions[k].end) return k;
   return Math.max(0, (CFG.sessions || []).length - 1);
 }
 // mở câu theo nhóm, dạng và số lượng: các câu được chọn chuyển lên đầu phần chưa mở
-function doOpen(group, type, n) {
+// rand = true: rút ngẫu nhiên trong các câu phù hợp (câu chùm luôn mở cùng câu đi cặp)
+function withPairs(list, n, pool) {
+  const out = [], inPool = new Set(pool);
+  for (const id of list) {
+    if (out.length >= n) break;
+    if (out.includes(id)) continue;
+    out.push(id);
+    const p = BYID[id].pair;
+    if (p && inPool.has(p) && !out.includes(p)) out.push(p);
+  }
+  return out;
+}
+function doOpen(group, type, n, rand) {
   const tail = state.order.slice(state.released);
-  const sel = tail.filter(id => {
+  const cand = tail.filter(id => {
     const q = BYID[id];
     if (group === 'mix' && q.set !== 'mix') return false;
     if (/^\d+$/.test(group) && (q.set === 'mix' || String(q.group) !== group)) return false;
     if (type !== 'all' && q.type !== type) return false;
     return true;
-  }).slice(0, n);
+  });
+  const sel = rand ? withPairs(shuffle(cand.slice()), n, cand) : cand.slice(0, n);
   if (!sel.length) return 0;
   const pick = new Set(sel);
   state.order = state.order.slice(0, state.released).concat(sel, tail.filter(id => !pick.has(id)));
@@ -59,6 +75,23 @@ function doOpen(group, type, n) {
 }
 // Chế độ 2: bốc ngẫu nhiên các câu theo ma trận (CFG.matrix.rules)
 function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = crypto.randomInt(i + 1); const t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+// Đề ôn ngẫu nhiên: chỉ bốc trong các câu CHƯA mở, đúng số câu từng dạng; câu chùm lấy đủ cặp (không vượt số câu của dạng)
+function drawFromRest() {
+  const rest = state.order.slice(state.released), used = new Set(), out = [], short = [];
+  for (const r of CFG.matrix.rules) {
+    const pool = shuffle(rest.filter(id => BYID[id].type === r.type && (r.topic == null || BYID[id].topic === r.topic)));
+    const inPool = new Set(pool), got = [];
+    for (const id of pool) {
+      if (got.length >= r.n || used.has(id)) continue;
+      const p = BYID[id].pair, unit = p && inPool.has(p) && !used.has(p) ? [id, p] : [id];
+      if (got.length + unit.length > r.n) continue;
+      unit.forEach(x => { used.add(x); got.push(x); });
+    }
+    if (got.length < r.n) short.push(r.type + ' ' + got.length + '/' + r.n);
+    out.push(...got);
+  }
+  return { ids: out, short };
+}
 function drawMatrix() {
   const rules = CFG.matrix.rules, used = new Set(), chosen = rules.map(() => []);
   const fits = (q, r) => q.type === r.type && (r.topic == null || q.topic === r.topic) && (!r.tag || q.tag === r.tag);
@@ -107,7 +140,7 @@ function autoCheck() {
   return did;
 }
 function settingsOut() {
-  return { cap: state.cap, locked: isLocked(), manualLock: state.locked, auto: state.auto, pct: state.pct, mode: state.mode, view: state.view, joined: joined(), classSize: classSize() };
+  return { cap: state.cap, locked: isLocked(), manualLock: state.locked, auto: state.auto, pct: state.pct, mode: state.mode, view: state.view, deSo: state.deSo, deCau: (state.drawn || []).length, deThieu: state.deThieu || [], joined: joined(), classSize: classSize() };
 }
 let saveTimer = null;
 function save() {
@@ -236,7 +269,7 @@ const server = http.createServer(async (req, res) => {
           const group = String(b.group || 'plan'), type = ['mc', 'tf', 'short', 'view'].includes(b.type) ? b.type : 'all';
           if (!(group === 'plan' || group === 'mix' || /^\d+$/.test(group))) return send(res, 400, { error: 'Nhóm không hợp lệ' });
           const n = b.n === 'all' ? Infinity : Math.max(1, Math.min(500, parseInt(b.n, 10) || 1));
-          if (!doOpen(group, type, n)) return send(res, 409, { error: 'Không còn câu phù hợp để mở' });
+          if (!doOpen(group, type, n, !!b.rand)) return send(res, 409, { error: 'Không còn câu phù hợp để mở' });
         }
         else if (a === 'openSession') {
           const tail = state.order.slice(state.released);
@@ -255,18 +288,21 @@ const server = http.createServer(async (req, res) => {
           if (b.locked !== undefined) state.locked = !!b.locked;
           if (b.mode !== undefined) state.mode = b.mode === 'batch' ? 'batch' : 'single';
           if (b.auto !== undefined) state.auto = !!b.auto;
-          if (b.view !== undefined) state.view = b.view === 'bo' ? 'bo' : 'dang';
+          if (b.view !== undefined) state.view = VIEWS.includes(b.view) ? b.view : 'dang';
           if (b.pct !== undefined) state.pct = Math.max(50, Math.min(100, parseInt(b.pct, 10) || 90));
           autoCheck();
         }
         else if (a === 'draw') {
           if (!CFG.matrix) return send(res, 400, { error: 'Chưa có ma trận để bốc đề' });
-          if (state.released > 0) return send(res, 409, { error: 'Phòng đã mở câu. Bấm “Làm lại từ đầu” rồi mới soạn đề ngẫu nhiên.' });
-          const ids = drawMatrix(), pick = new Set(ids);
-          state.order = ids.concat(DEFAULT_ORDER.filter(id => !pick.has(id)));
-          state.released = ids.length; state.closed = 0; state.mode = 'batch'; state.drawn = ids;
+          if (state.closed < state.released) return send(res, 409, { error: 'Đề (hoặc câu) đang mở chưa đóng. Bấm “Đóng tất cả & hiện đáp án” trước khi soạn đề mới.' });
+          const d = drawFromRest();
+          if (!d.ids.length) return send(res, 409, { error: 'Không còn câu chưa mở để soạn đề.' });
+          const pick = new Set(d.ids), tail = state.order.slice(state.released).filter(id => !pick.has(id));
+          state.order = state.order.slice(0, state.released).concat(d.ids, tail);
+          state.released += d.ids.length; state.mode = 'batch'; state.drawn = d.ids; state.deSo++;
+          state.deThieu = d.short;
         }
-        else if (a === 'reset') { state = { released: 0, closed: 0, order: DEFAULT_ORDER.slice(), students: {}, cap: state.cap, locked: false, mode: state.mode, auto: state.auto, pct: state.pct, autoSeq: state.autoSeq, view: state.view }; }
+        else if (a === 'reset') { state = { released: 0, closed: 0, order: DEFAULT_ORDER.slice(), students: {}, cap: state.cap, locked: false, mode: state.mode, auto: state.auto, pct: state.pct, autoSeq: state.autoSeq, view: state.view, deSo: 0 }; }
         else return send(res, 400, { error: 'Lệnh không hợp lệ' });
         save();
         return send(res, 200, { released: state.released, closed: state.closed });

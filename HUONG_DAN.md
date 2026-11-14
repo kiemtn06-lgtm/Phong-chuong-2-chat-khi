@@ -11,7 +11,12 @@ Cùng động cơ và cách dùng với phòng khối 10, 11 và phòng Vật l�
 
 Nhiều câu trong nguồn không có lời giải riêng (chỉ có đáp án); khi đó phần giải thích để trống.
 
-**Mở câu theo dạng hoặc theo bộ**: ở trang giáo viên, dòng "Mở câu theo" chọn *Dạng câu* (3 tab: Trắc nghiệm, Đúng sai, Trả lời ngắn) hoặc *Bộ đề* (26 bộ = 26 buổi, mỗi bộ đủ các dạng câu). Ở chế độ bộ, "Mở câu" mở câu kế tiếp của bộ đang chọn, "Mở hết bộ này" mở cả bộ. Học sinh thấy tab theo đúng chế độ giáo viên đang chọn. Muốn kết hợp cả hai (ví dụ chỉ mở câu đúng sai của Buổi 5): vào "Cài đặt thêm" → "Mở câu theo nhóm và số lượng", chọn nhóm (buổi) và dạng câu.
+**Ba kiểu mở câu** (trang giáo viên, dòng "Mở câu theo"):
+1. **Nhóm (buổi) · 26 nhóm**: mỗi buổi là một tab đủ các dạng câu. "Mở câu" mở câu kế tiếp của buổi đang chọn, "Mở hết bộ này" mở cả buổi.
+2. **Đề ôn trộn ngẫu nhiên · 18 TN – 4 ĐS – 6 TLN**: bấm "Soạn và mở đề ôn" để bốc ngẫu nhiên một đề từ các bài trong toàn chương, chỉ lấy câu chưa mở (đề sau không trùng đề trước), câu chùm đi đủ cặp. Đề mở cả một lần, học sinh làm theo 3 tab. Phải "Đóng tất cả & hiện đáp án" rồi mới soạn đề tiếp. Muốn dùng lại cả ngân hàng: "Làm lại từ đầu" (xóa kết quả, nhớ tải .csv trước). Ma trận đề ghi ở `matrix` trong `data/cfg.json` (sinh từ `tools/tao_du_lieu_523.py`).
+3. **Dạng câu · lộn xộn toàn chương**: 3 tab Trắc nghiệm / Đúng sai / Trả lời ngắn. "Mở 1 câu ngẫu nhiên" và "Mở 5 câu ngẫu nhiên" rút ngẫu nhiên trong toàn chương các câu của tab đang chọn (câu chùm mở cả cặp).
+
+Muốn kết hợp tùy ý (ví dụ chỉ câu đúng sai của Buổi 5): "Cài đặt thêm" → "Mở câu theo nhóm và số lượng". Học sinh thấy tab theo kiểu giáo viên đang chọn.
 
 **Mô phỏng**: 39 câu có tình huống cụ thể (bơm bóng, nén pit-tông, nung nóng đẳng áp/đẳng tích, khí thoát qua van, bọt khí nổi lên, chuyển động Brown) có thêm khung mô phỏng chạy được, đặt ngay dưới hình gốc. Danh sách và nhãn ở `tools/mo_phong.json`; mô phỏng chỉ diễn lại quá trình đề đã cho, không theo tỉ lệ, không hiện đại lượng cần tìm. Các câu hỏi khái niệm mà mô phỏng sẽ để lộ đáp án thì không gắn.
 
