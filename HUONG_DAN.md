@@ -16,6 +16,10 @@ Nhiều câu trong nguồn không có lời giải riêng (chỉ có đáp án);
 2. **Đề ôn trộn ngẫu nhiên · 18 TN – 4 ĐS – 6 TLN**: bấm "Soạn và mở đề ôn" để bốc ngẫu nhiên một đề từ các bài trong toàn chương, chỉ lấy câu chưa mở (đề sau không trùng đề trước), câu chùm đi đủ cặp. Đề mở cả một lần, học sinh làm theo 3 tab. Phải "Đóng tất cả & hiện đáp án" rồi mới soạn đề tiếp. Muốn dùng lại cả ngân hàng: "Làm lại từ đầu" (xóa kết quả, nhớ tải .csv trước). Ma trận đề ghi ở `matrix` trong `data/cfg.json` (sinh từ `tools/tao_du_lieu_523.py`).
 3. **Dạng câu · lộn xộn toàn chương**: 3 tab Trắc nghiệm / Đúng sai / Trả lời ngắn. "Mở 1 câu ngẫu nhiên" và "Mở 5 câu ngẫu nhiên" rút ngẫu nhiên trong toàn chương các câu của tab đang chọn (câu chùm mở cả cặp).
 
+**Trang học sinh** không chia tab: giáo viên mở câu nào thì học sinh làm câu đó, giữ đúng thứ tự giáo viên đã chia/mở (có tiêu đề Phần I/II/III hoặc tên buổi), câu đã đóng vẫn nằm đúng chỗ và hiện đáp án.
+
+**In giấy cho học sinh**: dòng "In giấy cho học sinh" ở trang giáo viên in *Câu đang mở*, *Tất cả câu đã mở*, hoặc *Cả buổi đang chọn* (khi mở theo nhóm), giữ đúng thứ tự, có dòng họ tên – lớp, câu đúng sai có ô ☐ Đúng / ☐ Sai, câu trả lời ngắn có dòng "Đáp số". Tick "kèm đáp án & lời giải" để in bản giáo viên. Trong hộp thoại in có thể chọn "Lưu dưới dạng PDF".
+
 Muốn kết hợp tùy ý (ví dụ chỉ câu đúng sai của Buổi 5): "Cài đặt thêm" → "Mở câu theo nhóm và số lượng". Học sinh thấy tab theo kiểu giáo viên đang chọn.
 
 **Mô phỏng**: 39 câu có tình huống cụ thể (bơm bóng, nén pit-tông, nung nóng đẳng áp/đẳng tích, khí thoát qua van, bọt khí nổi lên, chuyển động Brown) có thêm khung mô phỏng chạy được, đặt ngay dưới hình gốc. Danh sách và nhãn ở `tools/mo_phong.json`; mô phỏng chỉ diễn lại quá trình đề đã cho, không theo tỉ lệ, không hiện đại lượng cần tìm. Các câu hỏi khái niệm mà mô phỏng sẽ để lộ đáp án thì không gắn.
