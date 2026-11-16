@@ -54,3 +54,11 @@ Công thức viết dạng `$...$` (ví dụ `$\dfrac{p_1V_1}{T_1}$`) hiển th�
 - Bảng điểm quá trình (nút **Điểm quá trình**) được lưu ở trình duyệt của giáo viên và trên máy chủ. Máy chủ ngủ (mất dữ liệu) thì mở `/teacher` bằng đúng trình duyệt cũ, bảng tự nạp lại lên máy chủ. Đổi máy: **Sao lưu (.json)** rồi **Nạp tệp sao lưu**. Có **Tải bảng điểm (.csv)**, xóa từng buổi, xóa hết.
 - **Vòng tròn tiến độ**: mỗi câu đang mở có vòng tròn "số em đã gửi / sĩ số" ở cả trang học sinh và giáo viên (đầu cột bảng kết quả).
 - Mã dùng chung ở hồ sơ dạy học số: `tools/phong_qr_qua_trinh/` (`vao_phong.py` vá hoặc cập nhật một phòng).
+
+## Ghép thêm Mở rộng ôn tập và Đề tổng hợp (16/11/2026)
+Bộ 521 câu, 26 buổi và đề ôn trộn cũ **giữ nguyên** (đề ôn trộn cũ chỉ rút trong 521 câu này). Ghép thêm 187 câu từ trang **Ôn tập Vật lí 12 – Chương II** của Hồ sơ dạy học số, thành 11 nhóm mới sau Buổi 26:
+- **Mở rộng · Bài 8 → 12** (nhóm 27–31): 111 câu (78 TN, 17 ĐS, 16 TLN) của tab "Mở rộng ôn tập"; đáp án theo trang, không có lời giải; công thức là ảnh.
+- **Đề tổng hợp · Bài 8 → 13** (nhóm 32–37): 76 câu (54 TN, 8 ĐS, 8 TLN, 6 tự luận chỉ xem) mà tab "Ngày 5 · Đề tổng hợp" dùng để rút đề.
+- Ở kiểu mở **Đề ôn trộn ngẫu nhiên** có thêm nút **Soạn và mở Đề tổng hợp (Ngày 5)**: rút đúng ma trận của trang Ôn tập (TN: Bài 8, 9, 10, 11 mỗi bài 3 câu, Bài 12 4 câu, Bài 13 2 câu; 4 ĐS; TLN: Bài 9, 10, 12, 13 mỗi bài 1, Bài 11 2), chỉ trong bộ Đề tổng hợp; hết câu thì lấy bù câu Mở rộng cùng bài, cùng dạng.
+- Câu ghép thêm không có bản Word gốc nên **không xuất Word** (in giấy vẫn được).
+- Tạo lại phần ghép (khi trang Ôn tập thay đổi, hoặc sau khi chạy lại `tools/tao_du_lieu_523.py`), trong kho hồ sơ: `node tools/k12_on_tap_phong/ve_hinh.js <thư mục ảnh tạm>` rồi `node tools/k12_on_tap_phong/tao_phong.js D:\phong-chuong-2-chat-khi <thư mục ảnh tạm> --ghep`, sau đó `node tools/kiem_tra.js` trong kho phòng.

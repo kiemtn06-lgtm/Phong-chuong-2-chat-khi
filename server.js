@@ -87,10 +87,12 @@ function doOpen(group, type, n, rand) {
 // Chế độ 2: bốc ngẫu nhiên các câu theo ma trận (CFG.matrix.rules)
 function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = crypto.randomInt(i + 1); const t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
 // Đề ôn ngẫu nhiên: chỉ bốc trong các câu CHƯA mở, đúng số câu từng dạng; câu chùm lấy đủ cặp (không vượt số câu của dạng)
-function drawFromRest() {
+// mx: một ma trận trong CFG.matrices (mặc định CFG.matrix). r.set: chỉ rút trong bộ câu đó; r.bu: hết câu thì lấy bù từ bộ khác (cùng dạng, cùng bài)
+function drawFromRest(mx) {
   const rest = state.order.slice(state.released), used = new Set(), out = [], short = [];
-  for (const r of CFG.matrix.rules) {
-    const pool = shuffle(rest.filter(id => BYID[id].type === r.type && (r.topic == null || BYID[id].topic === r.topic)));
+  for (const r of (mx || CFG.matrix).rules) {
+    const fit = (id, s) => BYID[id].type === r.type && (r.topic == null || BYID[id].topic === r.topic) && (s == null || BYID[id].set === s);
+    const pool = shuffle(rest.filter(id => fit(id, r.set))).concat(r.bu ? shuffle(rest.filter(id => fit(id, r.bu))) : []);
     const inPool = new Set(pool), got = [];
     for (const id of pool) {
       if (got.length >= r.n || used.has(id)) continue;
@@ -314,7 +316,8 @@ const server = http.createServer(async (req, res) => {
         else if (a === 'draw') {
           if (!CFG.matrix) return send(res, 400, { error: 'Chưa có ma trận để bốc đề' });
           if (state.closed < state.released) return send(res, 409, { error: 'Đề (hoặc câu) đang mở chưa đóng. Bấm “Đóng tất cả & hiện đáp án” trước khi soạn đề mới.' });
-          const d = drawFromRest();
+          const MX = CFG.matrices || [CFG.matrix], mx = MX[Math.max(0, Math.min(MX.length - 1, parseInt(b.m, 10) || 0))];
+          const d = drawFromRest(mx);
           if (!d.ids.length) return send(res, 409, { error: 'Không còn câu chưa mở để soạn đề.' });
           const pick = new Set(d.ids), tail = state.order.slice(state.released).filter(id => !pick.has(id));
           state.order = state.order.slice(0, state.released).concat(d.ids, tail);

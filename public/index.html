@@ -266,6 +266,7 @@ table.qtt th small{font-weight:500;color:var(--muted)}
 #qrBig{position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.88);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:16px;cursor:zoom-out}
 #qrBig .qrimg{width:min(76vh,92vw);height:min(76vh,92vw);background:#fff;padding:14px;border-radius:14px}
 #qrBig .qrurl{color:#fff;font-size:clamp(16px,3vw,32px);text-align:center}
+.qimg{max-height:3.4em}   /* công thức dạng ảnh (Mở rộng ôn tập) vừa cỡ chữ */
 </style>
 
 <div class="wrap" id="app"><div class="card">Đang kết nối…</div></div>
@@ -377,8 +378,10 @@ function printRow(){
     '<label class="kv" style="display:flex;gap:4px;align-items:center;margin-left:6px"><input type="checkbox" data-in="printAns"'+(S.printAns?' checked':'')+'> kèm đáp án &amp; lời giải (bản giáo viên)</label></div>'+wordRow();}
 /* Xuất Word: máy chủ ghép nguyên văn đoạn Word gốc (công thức, hình, bảng) của từng câu; dùng chung ô "kèm đáp án" ở trên */
 function wordRow(){
-  var r=rel(),k=clo(),G=(S.config&&S.config.groups)||{},gs=Object.keys(G).sort(function(a,b){return (+a)-(+b);}),cnt={};
-  Q().forEach(function(q){cnt[q.group]=(cnt[q.group]||0)+1;});
+  var r=rel(),k=clo(),G=(S.config&&S.config.groups)||{},cnt={};
+  /* câu ghép từ trang Ôn tập (MR*, TH-*) không có bản Word gốc: không xuất Word, nhóm của chúng không có trong danh sách */
+  Q().forEach(function(q){if(!/^(MR\d|TH-)/.test(q.id))cnt[q.group]=(cnt[q.group]||0)+1;});
+  var gs=Object.keys(G).filter(function(g){return cnt[g];}).sort(function(a,b){return (+a)-(+b);});
   if(!S.wordG||!G[S.wordG])S.wordG=(viewBo()&&curGroup())||gs[0];
   function b(src,n,lab){return '<button class="btn sm" data-act="word" data-src="'+src+'"'+(n&&!S.wordBusy?'':' disabled')+'>'+lab+' ('+n+')</button>';}
   return '<div class="row" style="margin-top:6px;align-items:center;gap:6px;flex-wrap:wrap"><span class="kv">Xuất Word (.docx):</span>'+
@@ -426,7 +429,7 @@ function viewSeg(){var n=boTabs().length,bo=viewBo(),de=viewDe(),mx=S.config&&S.
     '<button class="'+(bo?'on':'')+'" data-act="view" data-v="bo">Nhóm (buổi) · '+n+' nhóm</button>'+
     (mx?'<button class="'+(de?'on':'')+'" data-act="view" data-v="de">Đề ôn trộn ngẫu nhiên · '+deSum(mx)+'</button>':'')+
     '<button class="'+(bo||de?'':'on')+'" data-act="view" data-v="dang">Dạng câu · lộn xộn toàn chương</button></div></div>';}
-function deSum(mx){var nm={mc:'TN',tf:'ĐS',short:'TLN'};return mx.rules.map(function(x){return x.n+' '+(nm[x.type]||x.type);}).join(' – ');}
+function deSum(mx){var nm={mc:'TN',tf:'ĐS',short:'TLN'},n={},o=[];mx.rules.forEach(function(x){if(!(x.type in n))o.push(x.type);n[x.type]=(n[x.type]||0)+x.n;});return o.map(function(t){return n[t]+' '+(nm[t]||t);}).join(' – ');}   /* gộp theo dạng (ma trận có thể chia theo bài) */
 /* Đề ôn trộn ngẫu nhiên: mỗi lần soạn bốc từ các câu CHƯA mở của toàn chương, đúng 18 TN – 4 ĐS – 6 TLN, mở cả đề một lần. */
 function dePanel(qs,r,k){
   var mx=S.config.matrix,s=cfgSet(),rest={},nm={mc:'trắc nghiệm',tf:'đúng sai',short:'trả lời ngắn'};
@@ -437,6 +440,8 @@ function dePanel(qs,r,k){
     '<div class="kv" style="margin-top:6px">Đã soạn <b class="num">'+(s.deSo||0)+'</b> đề'+(s.deSo?' · đề gần nhất '+(s.deCau||0)+' câu':'')+'. Còn chưa mở: '+['mc','tf','short'].map(function(t){return '<b class="num">'+(rest[t]||0)+'</b> '+nm[t];}).join(' · ')+'.</div>'+
     ((s.deThieu||[]).length?'<div class="note bad">Đề gần nhất thiếu câu: '+esc(s.deThieu.join(', '))+'.</div>':'')+
     '<div class="row" style="margin-top:10px"><button class="btn primary" data-act="draw"'+(open?' disabled':'')+'>Soạn và mở đề ôn '+((s.deSo||0)+1)+'</button>'+
+    /* ma trận thêm (cfg.matrices[1..]): ví dụ Đề tổng hợp (Ngày 5) của trang Ôn tập, rút trong bộ câu ghép thêm */
+    (S.config.matrices||[]).slice(1).map(function(m,i){return '<button class="btn primary" data-act="draw" data-m="'+(i+1)+'"'+(open?' disabled':'')+' title="'+esc(m.name)+'">Soạn và mở '+esc(String(m.name).split(' · ')[0])+'</button>';}).join('')+
     (open?'<button class="btn" data-act="closeAll">Đóng tất cả &amp; hiện đáp án</button>':'')+'</div>'+
     (open?'<div class="kv" style="margin-top:8px">Đang có '+(r-k)+' câu mở. Đóng đề hiện tại trước khi soạn đề mới.</div>':'')+
     (!du?'<div class="kv" style="margin-top:8px">Số câu chưa mở không còn đủ một đề đầy đủ; đề mới sẽ lấy hết phần còn lại. Bấm “Làm lại từ đầu” để dùng lại toàn bộ ngân hàng.</div>':'')+'</div>';
@@ -1481,7 +1486,8 @@ function act(d){
   /* theo dạng câu: rút ngẫu nhiên trong toàn chương các câu cùng dạng với tab đang chọn (câu chùm mở cả cặp) */
   else if(a==='openNext'&&TABS()){ctl('open',{group:'plan',type:effType(),n:1,rand:true});}
   else if(a==='openSession'&&TABS()){ctl('open',{group:'plan',type:effType(),n:+d.n||5,rand:true});}
-  else if(a==='openNext'||a==='openAll'||a==='openSession'||a==='closeNext'||a==='draw'){ctl(a);}
+  else if(a==='draw'){ctl('draw',d.m?{m:+d.m}:{});}
+  else if(a==='openNext'||a==='openAll'||a==='openSession'||a==='closeNext'){ctl(a);}
   else if(a==='ans'){S.showAns=!S.showAns;render();}
   else if(a==='ttab'){S.ttab=d.t==='essay'?'essay':'main';render();}
   else if(a==='tab'){S.tab=d.t==='essay'?'essay':'main';render();}

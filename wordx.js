@@ -267,6 +267,7 @@ function build(root, ids, byId, opt) {
   }
   if (!SRC) SRC = readZip(fs.readFileSync(path.join(root, P.src)));
   const num = {};
+  ids = ids.filter(id => P.items[id]);   // câu không có đoạn Word gốc (ví dụ câu ghép từ trang Ôn tập) thì bỏ, đánh số liền mạch
   ids.forEach((id, i) => { num[id] = i + 1; });
   const fill = (x, n, a, b) => x.split('⟦N⟧').join(n).split('⟦A⟧').join(a).split('⟦B⟧').join(b);
   let body = para(opt.title || '', { b: 1, sz: 30, center: 1, after: 40 });
