@@ -19,6 +19,7 @@ const KEY = JSON.parse(fs.readFileSync(path.join(__dirname, 'data', 'key.json'),
 const INDEX = fs.readFileSync(path.join(__dirname, 'public', 'index.html'));
 const N = CFG.questions.length;
 const BYID = {}; CFG.questions.forEach(q => { BYID[q.id] = q; });
+const QT = require('./qua_trinh')({ CFG, KEY, BYID, grade: (q, a, k) => grade(q, a, k), save: () => save() });   // điểm quá trình, số bài đã gửi theo câu, LAN cho mã QR
 const DEFAULT_ORDER = CFG.questions.map(q => q.id);
 const VER = crypto.createHash('md5').update(INDEX).digest('hex').slice(0, 8);
 
@@ -35,6 +36,16 @@ state.mode = state.mode === 'batch' ? 'batch' : 'single';
 state.auto = !!state.auto;
 state.pct = Math.max(50, Math.min(100, parseInt(state.pct, 10) || 90));
 state.autoSeq = parseInt(state.autoSeq, 10) || 0;
+// Nhận cả đáp án gửi sau khi câu đã đóng (vẫn chấm đúng/sai) nhưng chỉ TÍNH ĐIỂM bài gửi kịp:
+// trước lúc đóng câu (tự đóng khi đủ % quy định hoặc giáo viên đóng) cộng thêm LATE_GRACE_MS cho mạng chậm.
+const LATE_GRACE_MS = 5000;
+state.closedAt = state.closedAt && typeof state.closedAt === 'object' ? state.closedAt : {};   // mã câu -> thời điểm đóng
+function setClosed(n) {
+  const now = Date.now();
+  for (let i = state.closed; i < n; i++) if (!state.closedAt[state.order[i]]) state.closedAt[state.order[i]] = now;
+  state.closed = n;
+}
+function lateIds(st) { return Object.keys(st.late || {}); }
 // cách mở câu: 'dang' = theo dạng câu (3 tab, rút ngẫu nhiên toàn chương), 'bo' = theo bộ (buổi), 'de' = đề ôn ngẫu nhiên theo ma trận
 const VIEWS = ['dang', 'bo', 'de'];
 state.view = VIEWS.includes(state.view) ? state.view : 'dang';
@@ -108,6 +119,7 @@ function drawMatrix() {
   });
   return [].concat(...chosen);
 }
+QT.ensure(state);
 function joined() { return Object.keys(state.students).length; }
 function classSize() { return state.cap > 0 ? state.cap : joined(); }
 function isLocked() { return !!state.locked || (state.cap > 0 && joined() >= state.cap); }
@@ -134,7 +146,7 @@ function autoCheck() {
   for (let guard = 0; guard < 500; guard++) {
     const p = progressInfo();
     if (!p || p.answered < p.needed) break;
-    if (state.mode === 'batch') state.closed = state.released; else state.closed++;
+    setClosed(state.mode === 'batch' ? state.released : state.closed + 1);
     state.autoSeq++; did = true;
   }
   return did;
@@ -179,7 +191,7 @@ function tabIdOf(q) {
 }
 function publicConfig() {
   // câu chưa mở chỉ gửi mã và dạng, không gửi nội dung
-  return {
+  return { sent: QT.sent(state),
     title: CFG.title, tabs: CFG.tabs, groups: CFG.groups, sessions: CFG.sessions, total: N, hasView: CFG.questions.some(q => q.type === 'view'),
     released: state.released, closed: state.closed,
     settings: settingsOut(), progress: progressInfo(), autoSeq: state.autoSeq,
@@ -219,12 +231,14 @@ const server = http.createServer(async (req, res) => {
     const p = url.pathname;
     if (req.method === 'GET' && (p === '/' || p === '/teacher' || p === '/index.html')) return send(res, 200, INDEX, 'text/html; charset=utf-8');
     if (req.method === 'GET' && p === '/healthz') return send(res, 200, 'ok', 'text/plain');
+    // thư viện vẽ mã QR (qrcode-generator, MIT) cho trang giáo viên
+    if (req.method === 'GET' && p === '/lib/qrcode.js') { const b = fs.readFileSync(path.join(__dirname, 'public', 'lib', 'qrcode.js')); res.writeHead(200, { 'Content-Type': 'application/javascript; charset=utf-8', 'Cache-Control': 'public, max-age=86400', 'Content-Length': b.length }); return res.end(b); }
 
     // học sinh
     if (req.method === 'GET' && p === '/api/state') {
       const sid = url.searchParams.get('sid') || '';
       const st = state.students[sid];
-      return send(res, 200, { v: VER, config: publicConfig(), reveal: reveal(), mine: st ? { name: st.name, answers: st.answers } : null });
+      return send(res, 200, { v: VER, config: publicConfig(), reveal: reveal(), mine: st ? { name: st.name, qt: QT.mine(state, st), answers: st.answers, late: lateIds(st) } : null });
     }
     if (req.method === 'POST' && p === '/api/join') {
       const b = await readJson(req);
@@ -244,23 +258,28 @@ const server = http.createServer(async (req, res) => {
       const st = state.students[String(b.sid || '')];
       if (!st) return send(res, 403, { error: 'Chưa vào phòng' });
       const i = state.order.indexOf(b.qid);
-      if (i < 0 || i >= state.released || i < state.closed) return send(res, 409, { error: 'Câu này không còn mở' });
+      if (i < 0 || i >= state.released) return send(res, 409, { error: 'Câu này chưa mở' });
       if (st.answers[b.qid] != null) return send(res, 409, { error: 'Em đã gửi câu này rồi' });
       const q = BYID[b.qid]; let v = b.value;
       if (q.type === 'view') return send(res, 400, { error: 'Câu này chỉ để xem' });
       if (q.type === 'mc') { if (!['A', 'B', 'C', 'D'].includes(v)) return send(res, 400, { error: 'Đáp án không hợp lệ' }); }
       else if (q.type === 'tf') { if (!Array.isArray(v) || v.length !== q.options.length || !v.every(x => x === true || x === false)) return send(res, 400, { error: 'Chọn đủ Đúng/Sai cho các ý' }); }
       else { v = String(v == null ? '' : v).trim().slice(0, 30); if (!v) return send(res, 400, { error: 'Nhập đáp án' }); }
-      st.answers[b.qid] = v; autoCheck(); save();
-      return send(res, 200, { ok: true });
+      // câu đã đóng: vẫn nhận; quá thời gian trễ cho phép thì ghi là muộn (không tính điểm)
+      const now = Date.now(), ca = state.closedAt[b.qid], late = i < state.closed && !(ca && now <= ca + LATE_GRACE_MS);
+      st.answers[b.qid] = v; st.at = st.at || {}; st.at[b.qid] = now;
+      if (late) { st.late = st.late || {}; st.late[b.qid] = 1; }
+      autoCheck(); save();
+      return send(res, 200, { ok: true, late });
     }
 
     // giáo viên
     if (p.startsWith('/api/t/')) {
       if (!isTeacher(req)) return send(res, 401, { error: 'Sai mật khẩu' });
+      if (await QT.route(req, res, p, state, send, readJson)) return;
       if (req.method === 'GET' && p === '/api/t/state') {
         const students = {};
-        for (const [sid, s] of Object.entries(state.students)) students[sid] = { name: s.name, answers: s.answers };
+        for (const [sid, s] of Object.entries(state.students)) students[sid] = { name: s.name, answers: s.answers, late: lateIds(s) };
         return send(res, 200, { v: VER, config: Object.assign({}, CFG, { questions: Qs(), released: state.released, closed: state.closed, total: N, settings: settingsOut(), progress: progressInfo(), autoSeq: state.autoSeq }), key: KEY, responses: students });
       }
       if (req.method === 'POST' && p === '/api/t/ctl') {
@@ -281,8 +300,8 @@ const server = http.createServer(async (req, res) => {
         }
         else if (a === 'openNext') doOpen('plan', 'all', 1);
         else if (a === 'openAll') doOpen('plan', 'all', Infinity);
-        else if (a === 'closeNext') { if (state.closed < state.released) state.closed++; }
-        else if (a === 'closeAll') state.closed = state.released;
+        else if (a === 'closeNext') { if (state.closed < state.released) setClosed(state.closed + 1); }
+        else if (a === 'closeAll') setClosed(state.released);
         else if (a === 'settings') {
           if (b.cap !== undefined) state.cap = Math.max(0, Math.min(MAX_STUDENTS, parseInt(b.cap, 10) || 0));
           if (b.locked !== undefined) state.locked = !!b.locked;
@@ -302,7 +321,7 @@ const server = http.createServer(async (req, res) => {
           state.released += d.ids.length; state.mode = 'batch'; state.drawn = d.ids; state.deSo++;
           state.deThieu = d.short;
         }
-        else if (a === 'reset') { state = { released: 0, closed: 0, order: DEFAULT_ORDER.slice(), students: {}, cap: state.cap, locked: false, mode: state.mode, auto: state.auto, pct: state.pct, autoSeq: state.autoSeq, view: state.view, deSo: 0 }; }
+        else if (a === 'reset') { const hist = QT.finish(state); state = { released: 0, closed: 0, order: DEFAULT_ORDER.slice(), students: {}, cap: state.cap, locked: false, mode: state.mode, auto: state.auto, pct: state.pct, autoSeq: state.autoSeq, view: state.view, deSo: 0, closedAt: {} }; QT.ensure(state, hist); }
         else return send(res, 400, { error: 'Lệnh không hợp lệ' });
         save();
         return send(res, 200, { released: state.released, closed: state.closed });
@@ -338,8 +357,9 @@ const server = http.createServer(async (req, res) => {
             if (q.type === 'view') return '(chỉ xem)';
             const a = s.answers[q.id]; shown++;
             const g = grade(q, a, KEY.answers[q.id]);
-            if (g === true) right++;
-            return a == null ? '(chưa làm)' : ansText(q, a) + (g === true ? ' ✓' : g === false ? ' ✗' : '');
+            const muon = !!(s.late && s.late[q.id]);
+            if (g === true && !muon) right++;
+            return a == null ? '(chưa làm)' : ansText(q, a) + (g === true ? ' ✓' : g === false ? ' ✗' : '') + (muon ? ' (muộn, không tính điểm)' : '');
           });
           rows.push([s.name].concat(cells).concat([right, shown ? Math.round(right * 100 / shown) : 0, shown ? (Math.round(right * 100 / shown) / 10).toFixed(1).replace('.', ',') : '0,0']));
         }
