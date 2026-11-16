@@ -266,7 +266,9 @@ table.qtt th small{font-weight:500;color:var(--muted)}
 #qrBig{position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.88);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:16px;cursor:zoom-out}
 #qrBig .qrimg{width:min(76vh,92vw);height:min(76vh,92vw);background:#fff;padding:14px;border-radius:14px}
 #qrBig .qrurl{color:#fff;font-size:clamp(16px,3vw,32px);text-align:center}
-.qimg{max-height:3.4em}   /* công thức dạng ảnh (Mở rộng ôn tập) vừa cỡ chữ */
+.qimg.eq{max-height:none;width:auto;margin:0 1px;padding:0;background:transparent;border-radius:0;vertical-align:middle}   /* công thức dạng ảnh (Mở rộng ôn tập) */
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .qimg.eq{filter:invert(1)}}
+:root[data-theme="dark"] .qimg.eq{filter:invert(1)}
 </style>
 
 <div class="wrap" id="app"><div class="card">Đang kết nối…</div></div>
@@ -331,7 +333,7 @@ function rich(p){
       var c=/class="(kw|formula)"/.exec(m[3]||'');if(c&&(tag==='b'||tag==='span'))cl=' class="'+c[1]+'"';
       return '<'+tag+cl+'>';
     }
-    return esc(dec(x)).replace(/\n/g,'<br>').replace(/\[\[img:([\w.-]+)\]\]/g,'<img class="qimg" src="/img/$1" alt="">');
+    return esc(dec(x)).replace(/\n/g,'<br>').replace(/\[\[img:([\w.-]+)(?:\|([\d.]+))?\]\]/g,function(_,n,h){return h?'<img class="qimg eq" src="/img/'+n+'" alt="công thức" style="height:'+h+'pt">':'<img class="qimg" src="/img/'+n+'" alt="">';});   /* [[img:tên|pt]]: công thức dạng ảnh, cao đúng như tệp Word gốc */
   }).join('');
 }
 /* Công thức: dùng KaTeX (hỗ trợ \dfrac, \mathrm, \overline...) khi tải được; nếu không thì dùng bộ vẽ đơn giản có sẵn. */
