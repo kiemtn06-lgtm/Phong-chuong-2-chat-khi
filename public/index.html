@@ -168,6 +168,7 @@ table.m td.c-ok,table.m td.c-bad,table.m td.c-sent,table.m td.c-none{min-width:4
 .simsvg .ball{stroke:var(--ink);stroke-width:2.5}
 .simsvg .puff{fill:var(--accent)}
 .simsvg .wtr{fill:#4aa8d8;fill-opacity:.22}
+.simsvg .hg{fill:#8d96a0;stroke:#5b636c;stroke-width:1}
 .simsvg .air{fill:var(--line);fill-opacity:.35}
 .simsvg .bub{fill:var(--surface);fill-opacity:.85;stroke:var(--accent);stroke-width:2}
 /* phiếu in giấy */
@@ -1233,6 +1234,26 @@ var SIMK={
     if(dt>0&&st.t>=st.nt){st.tr.push([b[0].x,b[0].y]);st.nt+=0.8;if(st.tr.length>45)st.tr.shift();}
     e.querySelector('.trl').setAttribute('d',st.tr.map(function(x,i){return (i?'L':'M')+x[0].toFixed(1)+' '+x[1].toFixed(1);}).join(' '));
     var g=e.querySelector('g.trd'),hs=st.tr.map(function(x){return '<circle cx="'+x[0].toFixed(1)+'" cy="'+x[1].toFixed(1)+'" r="2.6"/>';}).join('');if(g._h!==hs){g.innerHTML=hs;g._h=hs;}
+  }},
+  /* bình nối ống ngang chứa thủy ngân, làm lạnh khí trong bình: thủy ngân chảy vào bình (áp suất khí quyển không đổi) */
+  tn:{y0:60,h:236,note:'Hình minh họa, không theo tỉ lệ.',draw:function(p,u){
+    var o='<defs><clipPath id="cb-'+u+'"><circle cx="86" cy="150" r="58"/></clipPath></defs>';
+    o+='<circle class="gas" cx="86" cy="150" r="58"/><g clip-path="url(#cb-'+u+')"><rect class="hg hgb" x="20" y="208" width="140" height="0"/></g>';
+    o+='<rect class="hg hgt" x="143" y="141" width="290" height="18"/>';
+    o+='<path class="wl" d="M143.3 141 H436 M143.3 159 H436 M143.3 141 A58 58 0 1 0 143.3 159"/>';
+    o+=sT(436,130,'sm','đầu hở','end')+sT(300,176,'sm','thủy ngân','middle')+sT(86,90,'sm','bình thủy tinh','middle')+sT(86,152,'sm','không khí','middle');
+    o+=heatSvg(86,205);
+    return o+sT(240,264,'cap sc1','','middle')+sT(240,287,'ro sc2','','middle');
+  },frame:function(e,p,st,dt,key){
+    var tot=5,t=Math.min(st.t,tot),u=ease((t-0.8)/3.6),cool=t>=0.8&&t<4.4,r=0.143;
+    var hb=lerp(0,r*210,u);
+    var b=e.querySelector('.hgb');b.setAttribute('y',(208-hb).toFixed(1));b.setAttribute('height',hb.toFixed(1));
+    var tt=e.querySelector('.hgt'),len=290-lerp(0,r*220,u);tt.setAttribute('width',len.toFixed(1));
+    show(e,'.hs-da',cool);
+    var nh=p.nhan||[];
+    setTxt(e,'.sc1',t<0.8?'Trạng thái (1)':cool?'Làm lạnh khí trong bình, áp suất khí quyển không đổi':'Trạng thái (2)');
+    setTxt(e,'.sc2',(t<0.8||(cool&&u<0.5)?nh[0]:nh[1])||'');
+    if(st.t>=tot&&st.play){st.t=tot;st.play=false;st.done=true;simBtns(key,'Chạy lại');}
   }},
   /* lấy thuốc bằng ống tiêm: lọ úp ngược, kim cắm qua nắp cao su; kéo pít-tông -> thuốc sang xilanh, phần khí trong lọ chiếm chỗ lớn hơn (đẳng nhiệt) */
   lo:{h:356,note:'Hình minh họa, không theo tỉ lệ.',draw:function(p){
